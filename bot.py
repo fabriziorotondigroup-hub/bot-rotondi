@@ -838,15 +838,51 @@ def main():
         fallbacks=[CommandHandler("annulla", annulla)]
     )
 
+async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    user = update.effective_user
+    await update.message.reply_text(
+        f"🆔 Chat ID: `{chat.id}`\n"
+        f"👤 User ID: `{user.id}`\n"
+        f"📝 Tipo: {chat.type}",
+        parse_mode="Markdown"
+    )
+
+def main():
+    init_db()
+    app = Application.builder().token(BOT_TOKEN).build()
+
+    conv = ConversationHandler(
+        entry_points=[CommandHandler("start", start)],
+        states={
+            SCEGLI_LINGUA: [CallbackQueryHandler(scegli_lingua, pattern="^lang_")],
+            NOME:          [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_nome)],
+            INDIRIZZO:     [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_indirizzo)],
+            TELEFONO:      [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_telefono)],
+            PROBLEMA:      [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_problema)],
+            CONFERMA:      [CallbackQueryHandler(conferma, pattern="^conferma_")],
+        },
+        fallbacks=[CommandHandler("annulla", annulla)]
+    )
+
+    conv_registrami = ConversationHandler(
+        entry_points=[CommandHandler("registrami", registrami)],
+        states={
+            REG_TELEFONO: [MessageHandler(filters.TEXT & ~filters.COMMAND, registrami_telefono)],
+        },
+        fallbacks=[CommandHandler("annulla", annulla)]
+    )
+
     app.add_handler(conv)
     app.add_handler(conv_registrami)
     app.add_handler(CallbackQueryHandler(gestisci_fascia, pattern=r"^fascia_"))
     app.add_handler(CommandHandler("lista",    lista))
     app.add_handler(CommandHandler("aperte",   aperte))
     app.add_handler(CommandHandler("chiamate", mie_chiamate))
+    app.add_handler(CommandHandler("getid",    getid))
 
     log.info("🤖 Bot avviato!")
-    app.run_polling(drop_pending_updates=True)
+    app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     main()
