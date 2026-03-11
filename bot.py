@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-BOT TELEGRAM — Assistenza Tecnica Lavatrici
-100% gratuito, nessuna configurazione complessa
-
-FLUSSO:
-  Cliente scrive al bot → sceglie lingua → risponde a 3 domande
-  → traduzione automatica in italiano → notifica tecnici → tecnico clicca tasto
-  → cliente riceve conferma nella sua lingua
+BOT TELEGRAM — Assistenza Tecnica Macchinari
+Rotondi Group Roma
 """
 
 import logging, sqlite3, asyncio, os
@@ -42,33 +37,37 @@ DB_PATH = "assistenza.db"
 # ─────────────────────────────────────────────
 # STATI CONVERSAZIONE
 # ─────────────────────────────────────────────
-SCEGLI_LINGUA, NOME, INDIRIZZO, TELEFONO, PROBLEMA, CONFERMA = range(6)
+(SCEGLI_LINGUA, NOME, INDIRIZZO, TELEFONO,
+ FOTO_TARGHETTA, MARCA, MODELLO, SERIALE,
+ PROBLEMA, FOTO_MACCHINA, CONFERMA) = range(11)
 
 # ─────────────────────────────────────────────
 # MESSAGGI MULTILINGUA
 # ─────────────────────────────────────────────
 TESTI = {
     "it": {
-        "nome":      "👤 Scrivi il tuo *nome e cognome*:",
-        "indirizzo": "📍 Scrivi il tuo *indirizzo* (via e numero civico):",
-        "telefono":  "📞 Scrivi il tuo *numero di telefono*:",
-        "problema":  "🔧 Descrivi il *problema con la lavatrice*:",
-        "riepilogo": "📋 *Riepilogo:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🔧 {problema}\n\nÈ tutto corretto?",
-        "si":        "✅ Sì, confermo",
-        "no":        "❌ No, ricomincio",
-        "registrata":(
+        "nome":           "👤 Scrivi il tuo *nome e cognome*:",
+        "indirizzo":      "📍 Scrivi il tuo *indirizzo completo* (via, numero civico e città):",
+        "telefono":       "📞 Scrivi il tuo *numero di telefono*:",
+        "foto_targhetta": "📸 Fai una *foto alla targhetta della macchina* e inviala (oppure scrivi 'salta'):",
+        "marca":          "🏷 Dimmi la *marca della macchina*:",
+        "modello":        "📋 Dimmi il *modello della macchina*:",
+        "seriale":        "🔢 Dimmi il *numero seriale* della macchina:",
+        "problema":       "🔧 Descrivi il *problema della macchina*:",
+        "foto_macchina":  "📸 Fai una *foto alla macchina* e inviala (oppure scrivi 'salta'):",
+        "riepilogo":      "📋 *Riepilogo:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 Seriale: {seriale}\n🔧 {problema}\n\nÈ tutto corretto?",
+        "si":             "✅ Sì, confermo",
+        "no":             "❌ No, ricomincio",
+        "registrata": (
             "Gentile Cliente,\n"
             "Grazie per aver contattato il nostro servizio di assistenza tecnica. "
             "La sua richiesta è stata ricevuta e un nostro tecnico sarà disponibile a breve.\n\n"
             "📋 *INFORMAZIONI SUL SERVIZIO*\n"
-            "Il costo dell'intervento è il seguente:\n"
             "• Chiamata + 1 ora di lavoro (o frazione): € 80,00 + IVA\n"
             "• Ore successive alla prima: € 40,00/ora + IVA\n\n"
             "⚠️ *ANNULLAMENTO CHIAMATA*\n"
-            "Qualora l'intervento non fosse più necessario, La invitiamo a contattare "
-            "direttamente il tecnico per procedere all'annullamento.\n"
-            "Attenzione: in assenza di disdetta, verrà addebitato il costo di uscita.\n\n"
-            "Rimanendo a disposizione per qualsiasi necessità, porgiamo cordiali saluti.\n"
+            "Per annullare contatti URGENTEMENTE il nr. +39 06 41 40 0514.\n"
+            "In assenza di disdetta verrà addebitato il costo di uscita.\n\n"
             "_Il Team di Assistenza Tecnica Rotondi Group Roma_"
         ),
         "assegnata": (
@@ -78,34 +77,39 @@ TESTI = {
             "📞 *Ufficio Roma:* +39 06 41400617\n"
             "⏰ *Intervento previsto:* {fascia}\n\n"
             "📋 *INFORMAZIONI SUL SERVIZIO*\n"
-            "• Chiamata + 1 ora di lavoro (o frazione): € 80,00 + IVA\n"
+            "• Chiamata + 1 Ora di lavoro (o frazione): € 80,00 + IVA\n"
             "• Ore successive alla prima: € 40,00/ora + IVA\n\n"
-            "⚠️ Per annullare contatti direttamente il tecnico.\n"
+            "Nota: Il pagamento dell'intervento dovrà essere effettuato direttamente al tecnico al termine del servizio.\n\n"
+            "I tecnici che operano con Rotondi Group sono professionisti freelance selezionati e incaricati dalla nostra azienda per l'assistenza e la riparazione dei nostri macchinari.\n\n"
+            "⚠️ Per annullare contatti URGENTEMENTE il nr. +39 06 41 40 0514.\n"
             "In assenza di disdetta verrà addebitato il costo di uscita.\n\n"
             "_Il Team di Assistenza Tecnica Rotondi Group Roma_"
         ),
-        "annulla":   "❌ Operazione annullata. Scrivi /start per ricominciare.",
+        "annulla": "❌ Operazione annullata. Scrivi /start per ricominciare.",
     },
     "en": {
-        "nome":      "👤 Write your *full name*:",
-        "indirizzo": "📍 Write your *address* (street and number):",
-        "telefono":  "📞 Write your *phone number*:",
-        "problema":  "🔧 Describe the *problem with your washing machine*:",
-        "riepilogo": "📋 *Summary:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🔧 {problema}\n\nIs everything correct?",
-        "si":        "✅ Yes, confirm",
-        "no":        "❌ No, start over",
-        "registrata":(
+        "nome":           "👤 Write your *full name*:",
+        "indirizzo":      "📍 Write your *full address* (street, number and city):",
+        "telefono":       "📞 Write your *phone number*:",
+        "foto_targhetta": "📸 Take a *photo of the machine's label* and send it (or write 'skip'):",
+        "marca":          "🏷 Tell me the *brand of the machine*:",
+        "modello":        "📋 Tell me the *model of the machine*:",
+        "seriale":        "🔢 Tell me the *serial number* of the machine:",
+        "problema":       "🔧 Describe the *problem with the machine*:",
+        "foto_macchina":  "📸 Take a *photo of the machine* and send it (or write 'skip'):",
+        "riepilogo":      "📋 *Summary:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 Serial: {seriale}\n🔧 {problema}\n\nIs everything correct?",
+        "si":             "✅ Yes, confirm",
+        "no":             "❌ No, start over",
+        "registrata": (
             "Dear Customer,\n"
             "Thank you for contacting our technical assistance service. "
             "Your request has been received and one of our technicians will be available shortly.\n\n"
             "📋 *SERVICE INFORMATION*\n"
-            "Intervention costs:\n"
             "• Call-out + 1 hour of work (or fraction): € 80.00 + VAT\n"
             "• Additional hours after the first: € 40.00/hour + VAT\n\n"
-            "⚠️ *CANCELLATION POLICY*\n"
-            "If the intervention is no longer needed, please contact the technician directly to cancel.\n"
-            "Warning: without cancellation, the call-out fee will be charged.\n\n"
-            "We remain at your disposal for any further needs.\n"
+            "⚠️ *CANCELLATION*\n"
+            "To cancel contact URGENTLY: +39 06 41 40 0514.\n"
+            "Without cancellation, the call-out fee will be charged.\n\n"
             "_The Rotondi Group Roma Technical Assistance Team_"
         ),
         "assegnata": (
@@ -115,32 +119,36 @@ TESTI = {
             "📞 *Rome Office:* +39 06 41400617\n"
             "⏰ *Scheduled intervention:* {fascia}\n\n"
             "📋 *SERVICE INFORMATION*\n"
-            "• Call-out + 1 hour of work: € 80.00 + VAT\n"
+            "• Call-out + 1 hour of work (or fraction): € 80.00 + VAT\n"
             "• Additional hours: € 40.00/hour + VAT\n\n"
-            "⚠️ To cancel, contact the technician directly.\n"
+            "Note: Payment must be made directly to the technician at the end of the service.\n\n"
+            "Our technicians are freelance professionals selected by Rotondi Group.\n\n"
+            "⚠️ To cancel contact URGENTLY: +39 06 41 40 0514.\n"
             "Without cancellation, the call-out fee will be charged.\n\n"
             "_The Rotondi Group Roma Technical Assistance Team_"
         ),
-        "annulla":   "❌ Cancelled. Write /start to begin again.",
+        "annulla": "❌ Cancelled. Write /start to begin again.",
     },
     "bn": {
-        "nome":      "👤 আপনার *পুরো নাম* লিখুন:",
-        "indirizzo": "📍 আপনার *ঠিকানা* লিখুন (রাস্তা ও নম্বর):",
-        "telefono":  "📞 আপনার *ফোন নম্বর* লিখুন:",
-        "problema":  "🔧 ওয়াশিং মেশিনের *সমস্যা* বর্ণনা করুন:",
-        "riepilogo": "📋 *সারসংক্ষেপ:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🔧 {problema}\n\nসব ঠিক আছে?",
-        "si":        "✅ হ্যাঁ, নিশ্চিত",
-        "no":        "❌ না, আবার শুরু",
-        "registrata":(
+        "nome":           "👤 আপনার *পুরো নাম* লিখুন:",
+        "indirizzo":      "📍 আপনার *সম্পূর্ণ ঠিকানা* লিখুন (রাস্তা, নম্বর এবং শহর):",
+        "telefono":       "📞 আপনার *ফোন নম্বর* লিখুন:",
+        "foto_targhetta": "📸 মেশিনের *তারিখফলকের ছবি* পাঠান (অথবা 'skip' লিখুন):",
+        "marca":          "🏷 মেশিনের *ব্র্যান্ড* বলুন:",
+        "modello":        "📋 মেশিনের *মডেল* বলুন:",
+        "seriale":        "🔢 মেশিনের *সিরিয়াল নম্বর* বলুন:",
+        "problema":       "🔧 মেশিনের *সমস্যা* বর্ণনা করুন:",
+        "foto_macchina":  "📸 মেশিনের *ছবি* পাঠান (অথবা 'skip' লিখুন):",
+        "riepilogo":      "📋 *সারসংক্ষেপ:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 সিরিয়াল: {seriale}\n🔧 {problema}\n\nসব ঠিক আছে?",
+        "si":             "✅ হ্যাঁ, নিশ্চিত",
+        "no":             "❌ না, আবার শুরু",
+        "registrata": (
             "প্রিয় গ্রাহক,\n"
-            "আমাদের প্রযুক্তিগত সহায়তা সেবায় যোগাযোগ করার জন্য ধন্যবাদ। "
-            "আপনার অনুরোধ পাওয়া গেছে এবং শীঘ্রই একজন টেকনিশিয়ান পাঠানো হবে।\n\n"
+            "আমাদের প্রযুক্তিগত সহায়তা সেবায় যোগাযোগ করার জন্য ধন্যবাদ।\n\n"
             "📋 *সেবার তথ্য*\n"
-            "হস্তক্ষেপের খরচ:\n"
             "• আসার চার্জ + ১ ঘণ্টা কাজ: € 80,00 + VAT\n"
             "• প্রথম ঘণ্টার পরে প্রতি ঘণ্টা: € 40,00 + VAT\n\n"
-            "⚠️ *বাতিলের নীতি*\n"
-            "যদি সেবার প্রয়োজন না থাকে, সরাসরি টেকনিশিয়ানকে জানান।\n"
+            "⚠️ বাতিল করতে জরুরি যোগাযোগ করুন: +39 06 41 40 0514\n"
             "বাতিল না করলে আসার চার্জ প্রযোজ্য হবে।\n\n"
             "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
         ),
@@ -153,29 +161,31 @@ TESTI = {
             "📋 *সেবার খরচ*\n"
             "• আসার চার্জ + ১ ঘণ্টা: € 80,00 + VAT\n"
             "• অতিরিক্ত ঘণ্টা: € 40,00 + VAT\n\n"
-            "⚠️ বাতিল করতে সরাসরি টেকনিশিয়ানকে জানান।\n\n"
+            "⚠️ বাতিল করতে জরুরি: +39 06 41 40 0514\n\n"
             "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
         ),
-        "annulla":   "❌ বাতিল হয়েছে। আবার শুরু করতে /start লিখুন।",
+        "annulla": "❌ বাতিল হয়েছে। আবার শুরু করতে /start লিখুন।",
     },
     "zh": {
-        "nome":      "👤 请写您的*姓名*：",
-        "indirizzo": "📍 请写您的*地址*（街道和门牌号）：",
-        "telefono":  "📞 请写您的*电话号码*：",
-        "problema":  "🔧 请描述*洗衣机的问题*：",
-        "riepilogo": "📋 *摘要：*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🔧 {problema}\n\n一切正确吗？",
-        "si":        "✅ 是，确认",
-        "no":        "❌ 否，重新开始",
-        "registrata":(
+        "nome":           "👤 请写您的*姓名*：",
+        "indirizzo":      "📍 请写您的*完整地址*（街道、门牌号和城市）：",
+        "telefono":       "📞 请写您的*电话号码*：",
+        "foto_targhetta": "📸 请拍*机器铭牌照片*发送（或写'跳过'）：",
+        "marca":          "🏷 请告诉我*机器品牌*：",
+        "modello":        "📋 请告诉我*机器型号*：",
+        "seriale":        "🔢 请告诉我*序列号*：",
+        "problema":       "🔧 请描述*机器的问题*：",
+        "foto_macchina":  "📸 请拍*机器照片*发送（或写'跳过'）：",
+        "riepilogo":      "📋 *摘要：*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 序列号: {seriale}\n🔧 {problema}\n\n一切正确吗？",
+        "si":             "✅ 是，确认",
+        "no":             "❌ 否，重新开始",
+        "registrata": (
             "尊敬的客户，\n"
-            "感谢您联系我们的技术援助服务。"
-            "您的请求已收到，我们的技术人员将很快为您服务。\n\n"
+            "感谢您联系我们的技术援助服务。\n\n"
             "📋 *服务信息*\n"
-            "维修费用如下：\n"
-            "• 上门费 + 1小时工作（或不足1小时）：€ 80,00 + 增值税\n"
-            "• 第一小时后每小时：€ 40,00 + 增值税\n\n"
-            "⚠️ *取消政策*\n"
-            "如不再需要服务，请直接联系技术人员取消。\n"
+            "• 上门费 + 1小时工作: € 80,00 + 增值税\n"
+            "• 第一小时后每小时: € 40,00 + 增值税\n\n"
+            "⚠️ 如需取消请紧急联系: +39 06 41 40 0514\n"
             "未取消将收取上门费。\n\n"
             "_罗通迪集团罗马技术团队_"
         ),
@@ -186,32 +196,34 @@ TESTI = {
             "📞 *罗马办公室：* +39 06 41400617\n"
             "⏰ *预计上门时间：* {fascia}\n\n"
             "📋 *服务费用*\n"
-            "• 上门费 + 1小时：€ 80,00 + 增值税\n"
-            "• 额外每小时：€ 40,00 + 增值税\n\n"
-            "⚠️ 如需取消请直接联系技术人员。\n\n"
+            "• 上门费 + 1小时: € 80,00 + 增值税\n"
+            "• 额外每小时: € 40,00 + 增值税\n\n"
+            "⚠️ 如需取消请紧急联系: +39 06 41 40 0514\n\n"
             "_罗通迪集团罗马技术团队_"
         ),
-        "annulla":   "❌ 已取消。写 /start 重新开始。",
+        "annulla": "❌ 已取消。写 /start 重新开始。",
     },
     "ar": {
-        "nome":      "👤 اكتب *اسمك الكامل*:",
-        "indirizzo": "📍 اكتب *عنوانك* (الشارع والرقم):",
-        "telefono":  "📞 اكتب *رقم هاتفك*:",
-        "problema":  "🔧 صف *مشكلة الغسالة*:",
-        "riepilogo": "📋 *الملخص:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🔧 {problema}\n\nهل كل شيء صحيح؟",
-        "si":        "✅ نعم، تأكيد",
-        "no":        "❌ لا، ابدأ من جديد",
-        "registrata":(
+        "nome":           "👤 اكتب *اسمك الكامل*:",
+        "indirizzo":      "📍 اكتب *عنوانك الكامل* (الشارع والرقم والمدينة):",
+        "telefono":       "📞 اكتب *رقم هاتفك*:",
+        "foto_targhetta": "📸 أرسل *صورة لوحة الجهاز* (أو اكتب 'تخطي'):",
+        "marca":          "🏷 أخبرني *ماركة الجهاز*:",
+        "modello":        "📋 أخبرني *موديل الجهاز*:",
+        "seriale":        "🔢 أخبرني *الرقم التسلسلي* للجهاز:",
+        "problema":       "🔧 صف *مشكلة الجهاز*:",
+        "foto_macchina":  "📸 أرسل *صورة الجهاز* (أو اكتب 'تخطي'):",
+        "riepilogo":      "📋 *الملخص:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 الرقم التسلسلي: {seriale}\n🔧 {problema}\n\nهل كل شيء صحيح؟",
+        "si":             "✅ نعم، تأكيد",
+        "no":             "❌ لا، ابدأ من جديد",
+        "registrata": (
             "عزيزي العميل،\n"
-            "شكراً لتواصلك مع خدمة الدعم الفني لدينا. "
-            "تم استلام طلبك وسيكون أحد فنيينا متاحاً قريباً.\n\n"
+            "شكراً لتواصلك مع خدمة الدعم الفني لدينا.\n\n"
             "📋 *معلومات الخدمة*\n"
-            "تكاليف التدخل:\n"
-            "• زيارة + ساعة عمل (أو جزء منها): € 80,00 + ضريبة\n"
-            "• الساعات الإضافية بعد الأولى: € 40,00/ساعة + ضريبة\n\n"
-            "⚠️ *سياسة الإلغاء*\n"
-            "إذا لم تعد بحاجة للخدمة، يرجى التواصل مع الفني مباشرة للإلغاء.\n"
-            "تنبيه: في حالة عدم الإلغاء، سيتم احتساب رسوم الزيارة.\n\n"
+            "• زيارة + ساعة عمل: € 80,00 + ضريبة\n"
+            "• الساعات الإضافية: € 40,00/ساعة + ضريبة\n\n"
+            "⚠️ للإلغاء تواصل عاجلاً: +39 06 41 40 0514\n"
+            "في حالة عدم الإلغاء سيتم احتساب رسوم الزيارة.\n\n"
             "_فريق روتوندي جروب روما للدعم الفني_"
         ),
         "assegnata": (
@@ -223,148 +235,10 @@ TESTI = {
             "📋 *تكاليف الخدمة*\n"
             "• زيارة + ساعة عمل: € 80,00 + ضريبة\n"
             "• ساعات إضافية: € 40,00/ساعة + ضريبة\n\n"
-            "⚠️ للإلغاء تواصل مع الفني مباشرة.\n\n"
+            "⚠️ للإلغاء تواصل عاجلاً: +39 06 41 40 0514\n\n"
             "_فريق روتوندي جروب روما للدعم الفني_"
         ),
-        "annulla":   "❌ تم الإلغاء. اكتب /start للبدء من جديد.",
-    },
-    "en": {
-        "nome":      "👤 Write your *full name*:",
-        "indirizzo": "📍 Write your *address* (street and number):",
-        "telefono":  "📞 Write your *phone number*:",
-        "problema":  "🔧 Describe the *problem with your washing machine*:",
-        "riepilogo": "📋 *Summary:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🔧 {problema}\n\nIs everything correct?",
-        "si":        "✅ Yes, confirm",
-        "no":        "❌ No, start over",
-        "registrata":(
-            "Dear Customer,\n"
-            "Thank you for contacting our technical assistance service. "
-            "Your request has been received and one of our technicians will be available shortly.\n\n"
-            "📋 *SERVICE INFORMATION*\n"
-            "Intervention costs:\n"
-            "• Call-out + 1 hour of work (or fraction): € 80.00 + VAT\n"
-            "• Additional hours after the first: € 40.00/hour + VAT\n\n"
-            "⚠️ *CANCELLATION POLICY*\n"
-            "If the intervention is no longer needed, please contact the technician directly to cancel.\n"
-            "Warning: without cancellation, the call-out fee will be charged.\n\n"
-            "We remain at your disposal for any further needs.\n"
-            "_The Rotondi Group Roma Technical Assistance Team_"
-        ),
-        "assegnata": (
-            "Dear Customer,\n"
-            "Your assistance request has been assigned.\n\n"
-            "👨‍🔧 *Assigned technician:* {tecnico}\n"
-            "⏰ *Scheduled intervention:* {fascia}\n\n"
-            "📋 *SERVICE INFORMATION*\n"
-            "• Call-out + 1 hour of work: € 80.00 + VAT\n"
-            "• Additional hours: € 40.00/hour + VAT\n\n"
-            "⚠️ To cancel, contact the technician directly.\n"
-            "Without cancellation, the call-out fee will be charged.\n\n"
-            "_The Rotondi Group Roma Technical Assistance Team_"
-        ),
-        "annulla":   "❌ Cancelled. Write /start to begin again.",
-    },
-    "bn": {
-        "nome":      "👤 আপনার *পুরো নাম* লিখুন:",
-        "indirizzo": "📍 আপনার *ঠিকানা* লিখুন (রাস্তা ও নম্বর):",
-        "telefono":  "📞 আপনার *ফোন নম্বর* লিখুন:",
-        "problema":  "🔧 ওয়াশিং মেশিনের *সমস্যা* বর্ণনা করুন:",
-        "riepilogo": "📋 *সারসংক্ষেপ:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🔧 {problema}\n\nসব ঠিক আছে?",
-        "si":        "✅ হ্যাঁ, নিশ্চিত",
-        "no":        "❌ না, আবার শুরু",
-        "registrata":(
-            "প্রিয় গ্রাহক,\n"
-            "আমাদের প্রযুক্তিগত সহায়তা সেবায় যোগাযোগ করার জন্য ধন্যবাদ। "
-            "আপনার অনুরোধ পাওয়া গেছে এবং শীঘ্রই একজন টেকনিশিয়ান পাঠানো হবে।\n\n"
-            "📋 *সেবার তথ্য*\n"
-            "হস্তক্ষেপের খরচ:\n"
-            "• আসার চার্জ + ১ ঘণ্টা কাজ: € 80,00 + VAT\n"
-            "• প্রথম ঘণ্টার পরে প্রতি ঘণ্টা: € 40,00 + VAT\n\n"
-            "⚠️ *বাতিলের নীতি*\n"
-            "যদি সেবার প্রয়োজন না থাকে, সরাসরি টেকনিশিয়ানকে জানান।\n"
-            "বাতিল না করলে আসার চার্জ প্রযোজ্য হবে।\n\n"
-            "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
-        ),
-        "assegnata": (
-            "প্রিয় গ্রাহক,\n"
-            "আপনার অনুরোধ একজন টেকনিশিয়ানকে দেওয়া হয়েছে।\n\n"
-            "👨‍🔧 *টেকনিশিয়ান:* {tecnico}\n"
-            "⏰ *আসার সময়:* {fascia}\n\n"
-            "📋 *সেবার খরচ*\n"
-            "• আসার চার্জ + ১ ঘণ্টা: € 80,00 + VAT\n"
-            "• অতিরিক্ত ঘণ্টা: € 40,00 + VAT\n\n"
-            "⚠️ বাতিল করতে সরাসরি টেকনিশিয়ানকে জানান।\n\n"
-            "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
-        ),
-        "annulla":   "❌ বাতিল হয়েছে। আবার শুরু করতে /start লিখুন।",
-    },
-    "zh": {
-        "nome":      "👤 请写您的*姓名*：",
-        "indirizzo": "📍 请写您的*地址*（街道和门牌号）：",
-        "telefono":  "📞 请写您的*电话号码*：",
-        "problema":  "🔧 请描述*洗衣机的问题*：",
-        "riepilogo": "📋 *摘要：*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🔧 {problema}\n\n一切正确吗？",
-        "si":        "✅ 是，确认",
-        "no":        "❌ 否，重新开始",
-        "registrata":(
-            "尊敬的客户，\n"
-            "感谢您联系我们的技术援助服务。"
-            "您的请求已收到，我们的技术人员将很快为您服务。\n\n"
-            "📋 *服务信息*\n"
-            "维修费用如下：\n"
-            "• 上门费 + 1小时工作（或不足1小时）：€ 80,00 + 增值税\n"
-            "• 第一小时后每小时：€ 40,00 + 增值税\n\n"
-            "⚠️ *取消政策*\n"
-            "如不再需要服务，请直接联系技术人员取消。\n"
-            "未取消将收取上门费。\n\n"
-            "_罗通迪集团罗马技术团队_"
-        ),
-        "assegnata": (
-            "尊敬的客户，\n"
-            "您的维修请求已分配给技术人员。\n\n"
-            "👨‍🔧 *负责技术人员：* {tecnico}\n"
-            "⏰ *预计上门时间：* {fascia}\n\n"
-            "📋 *服务费用*\n"
-            "• 上门费 + 1小时：€ 80,00 + 增值税\n"
-            "• 额外每小时：€ 40,00 + 增值税\n\n"
-            "⚠️ 如需取消请直接联系技术人员。\n\n"
-            "_罗通迪集团罗马技术团队_"
-        ),
-        "annulla":   "❌ 已取消。写 /start 重新开始。",
-    },
-    "ar": {
-        "nome":      "👤 اكتب *اسمك الكامل*:",
-        "indirizzo": "📍 اكتب *عنوانك* (الشارع والرقم):",
-        "telefono":  "📞 اكتب *رقم هاتفك*:",
-        "problema":  "🔧 صف *مشكلة الغسالة*:",
-        "riepilogo": "📋 *الملخص:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🔧 {problema}\n\nهل كل شيء صحيح؟",
-        "si":        "✅ نعم، تأكيد",
-        "no":        "❌ لا، ابدأ من جديد",
-        "registrata":(
-            "عزيزي العميل،\n"
-            "شكراً لتواصلك مع خدمة الدعم الفني لدينا. "
-            "تم استلام طلبك وسيكون أحد فنيينا متاحاً قريباً.\n\n"
-            "📋 *معلومات الخدمة*\n"
-            "تكاليف التدخل:\n"
-            "• زيارة + ساعة عمل (أو جزء منها): € 80,00 + ضريبة\n"
-            "• الساعات الإضافية بعد الأولى: € 40,00/ساعة + ضريبة\n\n"
-            "⚠️ *سياسة الإلغاء*\n"
-            "إذا لم تعد بحاجة للخدمة، يرجى التواصل مع الفني مباشرة للإلغاء.\n"
-            "تنبيه: في حالة عدم الإلغاء، سيتم احتساب رسوم الزيارة.\n\n"
-            "_فريق روتوندي جروب روما للدعم الفني_"
-        ),
-        "assegnata": (
-            "عزيزي العميل،\n"
-            "تم تعيين فني لطلبك.\n\n"
-            "👨‍🔧 *الفني المعين:* {tecnico}\n"
-            "⏰ *موعد التدخل:* {fascia}\n\n"
-            "📋 *تكاليف الخدمة*\n"
-            "• زيارة + ساعة عمل: € 80,00 + ضريبة\n"
-            "• ساعات إضافية: € 40,00/ساعة + ضريبة\n\n"
-            "⚠️ للإلغاء تواصل مع الفني مباشرة.\n\n"
-            "_فريق روتوندي جروب روما للدعم الفني_"
-        ),
-        "annulla":   "❌ تم الإلغاء. اكتب /start للبدء من جديد.",
+        "annulla": "❌ تم الإلغاء. اكتب /start للبدء من جديد.",
     },
 }
 
@@ -403,9 +277,20 @@ def init_db():
                 fascia_oraria      TEXT,
                 data_apertura      TEXT,
                 data_assegnazione  TEXT,
-                msg_id_gruppo      INTEGER
+                msg_id_gruppo      INTEGER,
+                marca              TEXT,
+                modello            TEXT,
+                seriale            TEXT,
+                foto_targhetta_id  TEXT,
+                foto_macchina_id   TEXT
             )
         """)
+        # Aggiungi colonne nuove se non esistono (per DB esistenti)
+        for col in ["marca TEXT", "modello TEXT", "seriale TEXT",
+                    "foto_targhetta_id TEXT", "foto_macchina_id TEXT"]:
+            try:
+                conn.execute(f"ALTER TABLE chiamate ADD COLUMN {col}")
+            except: pass
         conn.execute("""
             CREATE TABLE IF NOT EXISTS tecnici (
                 telegram_id INTEGER PRIMARY KEY,
@@ -415,14 +300,19 @@ def init_db():
         """)
         conn.commit()
 
-def salva_chiamata(tg_id, username, lingua, nome, indirizzo, telefono, prob_it, prob_orig):
+def salva_chiamata(tg_id, username, lingua, nome, indirizzo, telefono,
+                   prob_it, prob_orig, marca, modello, seriale,
+                   foto_targhetta_id, foto_macchina_id):
     with sqlite3.connect(DB_PATH) as conn:
         cur = conn.execute("""
             INSERT INTO chiamate
-            (telegram_id,username,lingua,nome_cliente,indirizzo,telefono,problema_it,problema_originale,data_apertura)
-            VALUES (?,?,?,?,?,?,?,?,?)
-        """, (tg_id, username, lingua, nome, indirizzo, telefono, prob_it, prob_orig,
-              datetime.now().strftime("%d/%m/%Y %H:%M")))
+            (telegram_id,username,lingua,nome_cliente,indirizzo,telefono,
+             problema_it,problema_originale,data_apertura,
+             marca,modello,seriale,foto_targhetta_id,foto_macchina_id)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """, (tg_id, username, lingua, nome, indirizzo, telefono,
+              prob_it, prob_orig, datetime.now().strftime("%d/%m/%Y %H:%M"),
+              marca, modello, seriale, foto_targhetta_id, foto_macchina_id))
         cid = cur.lastrowid
         conn.commit()
     return cid
@@ -472,7 +362,6 @@ def lista_chiamate_db(limite=20):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
-    # Se è back office o tecnico già registrato → menu diverso
     if user_id in BACKOFFICE_IDS:
         await update.message.reply_text(
             f"👩‍💼 *Benvenuta nel sistema {NOME_AZIENDA}!*\n\n"
@@ -492,7 +381,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return ConversationHandler.END
 
-    # Cliente nuovo → menu scelta lingua
     keyboard = InlineKeyboardMarkup([
         [
             InlineKeyboardButton("🇮🇹 Italiano", callback_data="lang_it"),
@@ -545,15 +433,51 @@ async def raccogli_indirizzo(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def raccogli_telefono(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lingua = context.user_data.get("lingua", "it")
     context.user_data["telefono"] = update.message.text.strip()
+    await update.message.reply_text(t(lingua, "foto_targhetta"), parse_mode="Markdown")
+    return FOTO_TARGHETTA
+
+async def raccogli_foto_targhetta(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lingua = context.user_data.get("lingua", "it")
+    if update.message.photo:
+        context.user_data["foto_targhetta_id"] = update.message.photo[-1].file_id
+    else:
+        context.user_data["foto_targhetta_id"] = None
+    await update.message.reply_text(t(lingua, "marca"), parse_mode="Markdown")
+    return MARCA
+
+async def raccogli_marca(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lingua = context.user_data.get("lingua", "it")
+    context.user_data["marca"] = traduci(update.message.text.strip(), lingua)
+    await update.message.reply_text(t(lingua, "modello"), parse_mode="Markdown")
+    return MODELLO
+
+async def raccogli_modello(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lingua = context.user_data.get("lingua", "it")
+    context.user_data["modello"] = traduci(update.message.text.strip(), lingua)
+    await update.message.reply_text(t(lingua, "seriale"), parse_mode="Markdown")
+    return SERIALE
+
+async def raccogli_seriale(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lingua = context.user_data.get("lingua", "it")
+    context.user_data["seriale"] = update.message.text.strip()
     await update.message.reply_text(t(lingua, "problema"), parse_mode="Markdown")
     return PROBLEMA
 
 async def raccogli_problema(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    lingua   = context.user_data.get("lingua", "it")
-    orig     = update.message.text.strip()
-    trad     = traduci(orig, lingua)
+    lingua = context.user_data.get("lingua", "it")
+    orig   = update.message.text.strip()
+    trad   = traduci(orig, lingua)
     context.user_data["problema_orig"] = orig
     context.user_data["problema_it"]   = trad
+    await update.message.reply_text(t(lingua, "foto_macchina"), parse_mode="Markdown")
+    return FOTO_MACCHINA
+
+async def raccogli_foto_macchina(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lingua = context.user_data.get("lingua", "it")
+    if update.message.photo:
+        context.user_data["foto_macchina_id"] = update.message.photo[-1].file_id
+    else:
+        context.user_data["foto_macchina_id"] = None
 
     keyboard = InlineKeyboardMarkup([[
         InlineKeyboardButton(t(lingua, "si"), callback_data="conferma_si"),
@@ -564,7 +488,10 @@ async def raccogli_problema(update: Update, context: ContextTypes.DEFAULT_TYPE):
           nome      = context.user_data["nome_orig"],
           indirizzo = context.user_data["indirizzo"],
           telefono  = context.user_data["telefono"],
-          problema  = orig),
+          marca     = context.user_data.get("marca", "-"),
+          modello   = context.user_data.get("modello", "-"),
+          seriale   = context.user_data.get("seriale", "-"),
+          problema  = context.user_data["problema_orig"]),
         reply_markup=keyboard,
         parse_mode="Markdown"
     )
@@ -579,7 +506,6 @@ async def conferma(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(t(lingua, "annulla"), parse_mode="Markdown")
         return ConversationHandler.END
 
-    # Salva nel DB
     user    = query.from_user
     nome_it = traduci(context.user_data["nome_orig"], lingua)
     cid     = salva_chiamata(
@@ -590,7 +516,12 @@ async def conferma(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["indirizzo"],
         context.user_data["telefono"],
         context.user_data["problema_it"],
-        context.user_data["problema_orig"]
+        context.user_data["problema_orig"],
+        context.user_data.get("marca", ""),
+        context.user_data.get("modello", ""),
+        context.user_data.get("seriale", ""),
+        context.user_data.get("foto_targhetta_id"),
+        context.user_data.get("foto_macchina_id"),
     )
 
     await query.edit_message_text(t(lingua, "registrata"), parse_mode="Markdown")
@@ -612,28 +543,54 @@ async def conferma(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     ])
 
-    # Link Google Maps automatico dall'indirizzo
-    indirizzo_maps = context.user_data['indirizzo'].replace(' ', '+')
+    indirizzo_maps = context.user_data['indirizzo'].replace(' ', '+') + ",+Roma,+Italia"
     link_maps = f"https://www.google.com/maps/search/?api=1&query={indirizzo_maps}"
+
+    testo_gruppo = (
+        f"🔔 *NUOVA CHIAMATA #{cid}* {flag}\n"
+        f"{'─'*30}\n"
+        f"👤 *Cliente:* {nome_it}\n"
+        f"📍 *Indirizzo:* {context.user_data['indirizzo']}\n"
+        f"🗺 [Apri su Google Maps]({link_maps})\n"
+        f"📞 *Telefono:* {context.user_data['telefono']}\n"
+        f"🆔 *Telegram:* @{user.username or user.id}\n"
+        f"🏷 *Marca:* {context.user_data.get('marca', '-')}\n"
+        f"📋 *Modello:* {context.user_data.get('modello', '-')}\n"
+        f"🔢 *Seriale:* {context.user_data.get('seriale', '-')}\n"
+        f"{sezione_problema}\n"
+        f"{'─'*30}\n"
+        f"⏰ Primo tecnico disponibile: clicca quando intervieni:"
+    )
 
     msg = await context.bot.send_message(
         chat_id=TECNICI_GROUP_ID,
-        text=(
-            f"🔔 *NUOVA CHIAMATA #{cid}* {flag}\n"
-            f"{'─'*30}\n"
-            f"👤 *Cliente:* {nome_it}\n"
-            f"📍 *Indirizzo:* {context.user_data['indirizzo']}\n"
-            f"🗺 [Apri su Google Maps]({link_maps})\n"
-            f"📞 *Telefono:* {context.user_data['telefono']}\n"
-            f"🆔 *Telegram:* @{user.username or user.id}\n"
-            f"{sezione_problema}\n"
-            f"{'─'*30}\n"
-            f"⏰ Primo tecnico disponibile: clicca quando intervieni:"
-        ),
+        text=testo_gruppo,
         reply_markup=keyboard,
         parse_mode="Markdown"
     )
     aggiorna_msg_id(cid, msg.message_id)
+
+    # Invia foto targhetta al gruppo se presente
+    if context.user_data.get("foto_targhetta_id"):
+        try:
+            await context.bot.send_photo(
+                chat_id=TECNICI_GROUP_ID,
+                photo=context.user_data["foto_targhetta_id"],
+                caption=f"📸 Foto targhetta — Chiamata #{cid}"
+            )
+        except Exception as e:
+            log.error(f"Foto targhetta: {e}")
+
+    # Invia foto macchina al gruppo se presente
+    if context.user_data.get("foto_macchina_id"):
+        try:
+            await context.bot.send_photo(
+                chat_id=TECNICI_GROUP_ID,
+                photo=context.user_data["foto_macchina_id"],
+                caption=f"📸 Foto macchina — Chiamata #{cid}"
+            )
+        except Exception as e:
+            log.error(f"Foto macchina: {e}")
 
     # Notifica back office
     for bo_id in BACKOFFICE_IDS:
@@ -644,6 +601,9 @@ async def conferma(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"📲 *Nuova richiesta #{cid}* {flag}\n\n"
                     f"👤 {nome_it}\n"
                     f"📍 {context.user_data['indirizzo']}\n"
+                    f"📞 {context.user_data['telefono']}\n"
+                    f"🏷 {context.user_data.get('marca','-')} — {context.user_data.get('modello','-')}\n"
+                    f"🔢 Seriale: {context.user_data.get('seriale','-')}\n"
                     f"🔧 {context.user_data['problema_it']}"
                     + (f"\n🔧 Originale: {context.user_data['problema_orig']}" if lingua != "it" else "")
                 ),
@@ -678,7 +638,7 @@ async def gestisci_fascia(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ch = get_chiamata(cid)
     if not ch:
         await query.answer("⚠️ Chiamata non trovata.", show_alert=True); return
-    if ch[8] == "assegnata":
+    if ch[9] == "assegnata":
         await query.answer("⚠️ Già assegnata a un altro tecnico!", show_alert=True); return
 
     tid    = query.from_user.id
@@ -689,13 +649,12 @@ async def gestisci_fascia(update: Update, context: ContextTypes.DEFAULT_TYPE):
         registra_tecnico(tid, t_nome)
     assegna(cid, tid, nome_finale, fascia)
 
-    # Aggiorna messaggio nel gruppo tecnici
     await query.edit_message_text(
         f"✅ *CHIAMATA #{cid} — ASSEGNATA*\n"
         f"{'─'*30}\n"
         f"👤 *Cliente:* {ch[4]}\n"
         f"📍 *Indirizzo:* {ch[5]}\n"
-        f"🔧 *Problema:* {ch[6]}\n"
+        f"🔧 *Problema:* {ch[7]}\n"
         f"{'─'*30}\n"
         f"👨‍🔧 *Tecnico:* {nome_finale}\n"
         f"⏰ *Intervento:* {fascia}",
@@ -766,9 +725,9 @@ async def aperte(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(testo, parse_mode="Markdown")
 
 # ─────────────────────────────────────────────
-# COMANDO TECNICO — /registrami (2 passi)
+# COMANDO TECNICO — /registrami
 # ─────────────────────────────────────────────
-REG_TELEFONO = 10  # stato separato per registrazione tecnico
+REG_TELEFONO = 20
 
 async def registrami(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -811,33 +770,8 @@ async def mie_chiamate(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(testo, parse_mode="Markdown")
 
 # ─────────────────────────────────────────────
-# MAIN
+# COMANDO /getid — per trovare ID gruppo
 # ─────────────────────────────────────────────
-def main():
-    init_db()
-    app = Application.builder().token(BOT_TOKEN).build()
-
-    conv = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
-        states={
-            SCEGLI_LINGUA: [CallbackQueryHandler(scegli_lingua, pattern="^lang_")],
-            NOME:          [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_nome)],
-            INDIRIZZO:     [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_indirizzo)],
-            TELEFONO:      [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_telefono)],
-            PROBLEMA:      [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_problema)],
-            CONFERMA:      [CallbackQueryHandler(conferma, pattern="^conferma_")],
-        },
-        fallbacks=[CommandHandler("annulla", annulla)]
-    )
-
-    conv_registrami = ConversationHandler(
-        entry_points=[CommandHandler("registrami", registrami)],
-        states={
-            REG_TELEFONO: [MessageHandler(filters.TEXT & ~filters.COMMAND, registrami_telefono)],
-        },
-        fallbacks=[CommandHandler("annulla", annulla)]
-    )
-
 async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
     user = update.effective_user
@@ -848,6 +782,9 @@ async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
+# ─────────────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────────────
 def main():
     init_db()
     app = Application.builder().token(BOT_TOKEN).build()
@@ -855,12 +792,17 @@ def main():
     conv = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            SCEGLI_LINGUA: [CallbackQueryHandler(scegli_lingua, pattern="^lang_")],
-            NOME:          [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_nome)],
-            INDIRIZZO:     [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_indirizzo)],
-            TELEFONO:      [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_telefono)],
-            PROBLEMA:      [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_problema)],
-            CONFERMA:      [CallbackQueryHandler(conferma, pattern="^conferma_")],
+            SCEGLI_LINGUA:  [CallbackQueryHandler(scegli_lingua, pattern="^lang_")],
+            NOME:           [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_nome)],
+            INDIRIZZO:      [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_indirizzo)],
+            TELEFONO:       [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_telefono)],
+            FOTO_TARGHETTA: [MessageHandler((filters.PHOTO | filters.TEXT) & ~filters.COMMAND, raccogli_foto_targhetta)],
+            MARCA:          [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_marca)],
+            MODELLO:        [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_modello)],
+            SERIALE:        [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_seriale)],
+            PROBLEMA:       [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_problema)],
+            FOTO_MACCHINA:  [MessageHandler((filters.PHOTO | filters.TEXT) & ~filters.COMMAND, raccogli_foto_macchina)],
+            CONFERMA:       [CallbackQueryHandler(conferma, pattern="^conferma_")],
         },
         fallbacks=[CommandHandler("annulla", annulla)]
     )
