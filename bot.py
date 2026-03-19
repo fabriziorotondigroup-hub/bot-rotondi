@@ -588,8 +588,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"👩‍💼 *Benvenuta nel sistema {NOME_AZIENDA}!*\n\n"
             "Comandi disponibili:\n"
-            "/lista — vedi le ultime chiamate\n"
-            "/aperte — vedi solo le chiamate aperte",
+            "/lista — ultime 20 chiamate\n"
+            "/aperte — chiamate non ancora assegnate\n"
+            "/assegnate — chiamate già assegnate (con sblocco)\n"
+            "/storico — storico per mese/anno\n"
+            "/statistiche — classifica tecnici e report",
             parse_mode="Markdown"
         )
         return ConversationHandler.END
@@ -1218,6 +1221,248 @@ async def gestisci_sblocco(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         log.error(f"Notifica cliente sblocco: {e}")
 
+async def storico(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in BACKOFFICE_IDS:
+        await update.message.reply_text("⛔ Non autorizzato."); return
+
+    args = context.args  # es: /storico 01 2025 oppure /storico 2025
+
+    now = datetime.now()
+
+    if not args:
+        # Nessun argomento: mostra menu mesi dell'anno corrente
+        mesi = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"]
+        anno = now.year
+        bottoni = []
+        riga = []
+        for i, m in enumerate(mesi, 1):
+            riga.append(InlineKeyboardButton(f"{m} {anno}", callback_data=f"storico_{i:02d}_{anno}"))
+            if len(riga) == 3:
+                bottoni.append(riga); riga = []
+        if riga: bottoni.append(riga)
+        # Anno precedente
+        bottoni.append([InlineKeyboardButton(f"📅 Anno {anno-1}", callback_data=f"storico_00_{anno-1}")])
+        await update.message.reply_text(
+            "📊 *Storico chiamate*\n\nScegli il mese da visualizzare:",
+            reply_markup=InlineKeyboardMarkup(bottoni),
+            parse_mode="Markdown"
+        )
+        return
+
+    # Con argomenti: /storico MM YYYY o /storico YYYY
+    try:
+        if len(args) == 2:
+            mese = int(args[0]); anno = int(args[1])
+        elif len(args) == 1 and len(args[0]) == 4:
+            mese = 0; anno = int(args[0])
+        else:
+            mese = int(args[0]); anno = now.year
+    except:
+        await update.message.reply_text("⚠️ Formato: /storico MM YYYY\nEsempio: /storico 01 2025"); return
+
+    await _invia_storico(update.message, context, mese, anno)
+
+async def gestisci_storico(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if query.from_user.id not in BACKOFFICE_IDS:
+        await query.answer("⛔ Non autorizzato.", show_alert=True); return
+
+    parti = query.data.split("_")
+    mese = int(parti[1]); anno = int(parti[2])
+    await _invia_storico(query.message, context, mese, anno)
+
+async def _invia_storico(msg, context, mese, anno):
+    with sqlite3.connect(DB_PATH) as conn:
+        if mese == 0:
+            # Anno intero
+            rows = conn.execute("""
+                SELECT id,nome_cliente,indirizzo,stato,tecnico_nome,fascia_oraria,
+                       data_apertura,lingua,marca,modello,problema_it,data_ora_proposta
+                FROM chiamate
+                WHERE data_apertura LIKE ?
+                ORDER BY id DESC
+            """, (f"%/{anno}%",)).fetchall()
+            periodo = f"Anno {anno}"
+        else:
+            rows = conn.execute("""
+                SELECT id,nome_cliente,indirizzo,stato,tecnico_nome,fascia_oraria,
+                       data_apertura,lingua,marca,modello,problema_it,data_ora_proposta
+                FROM chiamate
+                WHERE data_apertura LIKE ?
+                ORDER BY id DESC
+            """, (f"%/{mese:02d}/{anno}%",)).fetchall()
+            mesi_it = ["","Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno",
+                       "Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"]
+            periodo = f"{mesi_it[mese]} {anno}"
+
+    if not rows:
+        await msg.reply_text(
+            f"📊 *Storico — {periodo}*\n\n_Nessuna chiamata trovata._",
+            parse_mode="Markdown"
+        )
+        return
+
+    # Statistiche riepilogative
+    totale    = len(rows)
+    assegnate = sum(1 for r in rows if r[3] == "assegnata")
+    aperte    = sum(1 for r in rows if r[3] == "aperta")
+    attesa    = sum(1 for r in rows if r[3] == "in_attesa_conferma")
+
+    # Conta per tecnico
+    tecnici_count = {}
+    for r in rows:
+        if r[4]:
+            tecnici_count[r[4]] = tecnici_count.get(r[4], 0) + 1
+
+    riepilogo = (
+        f"📊 *STORICO CHIAMATE — {periodo}*\n"
+        f"{'━'*28}\n\n"
+        f"📈 *Totale:* {totale} chiamate\n"
+        f"✅ Assegnate: {assegnate}\n"
+        f"🟡 Aperte: {aperte}\n"
+        f"⏳ In attesa: {attesa}\n\n"
+    )
+    if tecnici_count:
+        riepilogo += "*Chiamate per tecnico:*\n"
+        for nome, count in sorted(tecnici_count.items(), key=lambda x: -x[1]):
+            riepilogo += f"  👨‍🔧 {nome}: {count}\n"
+        riepilogo += "\n"
+
+    riepilogo += f"{'━'*28}\n_Dettaglio chiamate:_"
+    await msg.reply_text(riepilogo, parse_mode="Markdown")
+
+    # Invia le chiamate in blocchi da 10 per non superare limiti Telegram
+    BLOCCO = 10
+    for i in range(0, len(rows), BLOCCO):
+        blocco = rows[i:i+BLOCCO]
+        testo = ""
+        for r in blocco:
+            emoji = "✅" if r[3] == "assegnata" else ("⏳" if r[3] == "in_attesa_conferma" else "🟡")
+            flag  = FLAGS.get(r[7], "🌍")
+            testo += f"{emoji} *#{r[0]}* {flag} — {r[1]}\n"
+            testo += f"📍 {r[2]}\n"
+            testo += f"🕐 {r[6]}\n"
+            if r[4]:
+                testo += f"👨‍🔧 {r[4]}"
+                if r[5]:  testo += f" — {r[5]}"
+                elif r[11]: testo += f" — {r[11]}"
+                testo += "\n"
+            if r[8] or r[9]:
+                testo += f"🏭 {r[8] or '—'} · {r[9] or '—'}\n"
+            testo += f"🔧 _{r[10][:60]}..._\n\n" if r[10] and len(r[10]) > 60 else f"🔧 _{r[10] or '—'}_\n\n"
+        await msg.reply_text(testo, parse_mode="Markdown")
+
+async def statistiche(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in BACKOFFICE_IDS:
+        await update.message.reply_text("⛔ Non autorizzato."); return
+
+    now = datetime.now()
+    mese_corrente = now.strftime("%m/%Y")
+    anno_corrente = str(now.year)
+
+    with sqlite3.connect(DB_PATH) as conn:
+        # Totali generali
+        totale      = conn.execute("SELECT COUNT(*) FROM chiamate").fetchone()[0]
+        assegnate   = conn.execute("SELECT COUNT(*) FROM chiamate WHERE stato='assegnata'").fetchone()[0]
+        aperte      = conn.execute("SELECT COUNT(*) FROM chiamate WHERE stato='aperta'").fetchone()[0]
+        in_attesa   = conn.execute("SELECT COUNT(*) FROM chiamate WHERE stato='in_attesa_conferma'").fetchone()[0]
+
+        # Chiamate questo mese
+        mese_tot    = conn.execute("SELECT COUNT(*) FROM chiamate WHERE data_apertura LIKE ?", (f"%/{mese_corrente}%",)).fetchone()[0]
+        mese_ass    = conn.execute("SELECT COUNT(*) FROM chiamate WHERE stato='assegnata' AND data_apertura LIKE ?", (f"%/{mese_corrente}%",)).fetchone()[0]
+
+        # Chiamate questo anno
+        anno_tot    = conn.execute("SELECT COUNT(*) FROM chiamate WHERE data_apertura LIKE ?", (f"%/{anno_corrente}%",)).fetchone()[0]
+
+        # Statistiche per tecnico (tutti i tempi)
+        tecnici_rows = conn.execute("""
+            SELECT tecnico_nome, COUNT(*) as totale,
+                   SUM(CASE WHEN stato='assegnata' THEN 1 ELSE 0 END) as completate
+            FROM chiamate
+            WHERE tecnico_nome IS NOT NULL AND tecnico_nome != ''
+            GROUP BY tecnico_nome
+            ORDER BY totale DESC
+        """).fetchall()
+
+        # Statistiche per tecnico questo mese
+        tecnici_mese = conn.execute("""
+            SELECT tecnico_nome, COUNT(*) as totale
+            FROM chiamate
+            WHERE tecnico_nome IS NOT NULL AND tecnico_nome != ''
+            AND data_apertura LIKE ?
+            GROUP BY tecnico_nome
+            ORDER BY totale DESC
+        """, (f"%/{mese_corrente}%",)).fetchall()
+
+        # Lingue clienti
+        lingue_rows = conn.execute("""
+            SELECT lingua, COUNT(*) as tot
+            FROM chiamate
+            GROUP BY lingua
+            ORDER BY tot DESC
+        """).fetchall()
+
+        # Ultima chiamata
+        ultima = conn.execute("""
+            SELECT nome_cliente, data_apertura FROM chiamate ORDER BY id DESC LIMIT 1
+        """).fetchone()
+
+    LINGUE_NOMI = {"it": "🇮🇹 Italiano", "en": "🇬🇧 English", "bn": "🇧🇩 Bangla", "zh": "🇨🇳 Cinese", "ar": "🇸🇦 Arabo"}
+
+    # ── Messaggio 1: Riepilogo generale
+    msg1 = (
+        f"📊 *STATISTICHE ROTONDI GROUP ROMA*\n"
+        f"{'━'*30}\n\n"
+        f"📅 *Questo mese ({now.strftime('%B %Y')})*\n"
+        f"  › Chiamate ricevute: *{mese_tot}*\n"
+        f"  › Assegnate: *{mese_ass}*\n\n"
+        f"📆 *Anno {anno_corrente}*\n"
+        f"  › Chiamate totali: *{anno_tot}*\n\n"
+        f"🗂 *Totale storico*\n"
+        f"  › Chiamate totali: *{totale}*\n"
+        f"  › ✅ Assegnate: *{assegnate}*\n"
+        f"  › 🟡 Aperte: *{aperte}*\n"
+        f"  › ⏳ In attesa: *{in_attesa}*\n"
+    )
+    if ultima:
+        msg1 += f"\n🕐 *Ultima chiamata:* {ultima[0]} — {ultima[1]}"
+    await update.message.reply_text(msg1, parse_mode="Markdown")
+
+    # ── Messaggio 2: Classifica tecnici
+    if tecnici_rows:
+        medaglie = ["🥇", "🥈", "🥉"]
+        msg2 = f"👨‍🔧 *CLASSIFICA TECNICI — Storico completo*\n{'━'*30}\n\n"
+        for i, (nome, tot, comp) in enumerate(tecnici_rows):
+            medaglia = medaglie[i] if i < 3 else f"  {i+1}."
+            barra = "█" * min(tot, 15) + "░" * max(0, 15 - min(tot, 15))
+            msg2 += f"{medaglia} *{nome}*\n"
+            msg2 += f"  `{barra}` *{tot}* chiamate\n\n"
+
+        if tecnici_rows:
+            top = tecnici_rows[0]
+            msg2 += f"{'━'*30}\n🏆 *Tecnico più attivo:* {top[0]} con *{top[1]}* chiamate"
+        await update.message.reply_text(msg2, parse_mode="Markdown")
+
+    # ── Messaggio 3: Tecnici questo mese
+    if tecnici_mese:
+        msg3 = f"📅 *TECNICI — {now.strftime('%B %Y')}*\n{'━'*30}\n\n"
+        for i, (nome, tot) in enumerate(tecnici_mese):
+            medaglia = ["🥇","🥈","🥉"][i] if i < 3 else f"  {i+1}."
+            msg3 += f"{medaglia} *{nome}*: *{tot}* chiamate\n"
+        await update.message.reply_text(msg3, parse_mode="Markdown")
+
+    # ── Messaggio 4: Lingue clienti
+    if lingue_rows:
+        msg4 = f"🌍 *LINGUE CLIENTI*\n{'━'*30}\n\n"
+        tot_ling = sum(r[1] for r in lingue_rows)
+        for lingua, cnt in lingue_rows:
+            nome = LINGUE_NOMI.get(lingua, lingua)
+            perc = int(cnt / tot_ling * 100) if tot_ling > 0 else 0
+            barra = "█" * (perc // 7) + "░" * (14 - perc // 7)
+            msg4 += f"{nome}\n  `{barra}` *{cnt}* ({perc}%)\n\n"
+        await update.message.reply_text(msg4, parse_mode="Markdown")
+
 REG_TELEFONO = 20
 
 async def registrami(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1306,6 +1551,9 @@ def main():
     app.add_handler(CommandHandler("aperte",   aperte))
     app.add_handler(CommandHandler("chiamate", mie_chiamate))
     app.add_handler(CommandHandler("getid",      getid))
+    app.add_handler(CommandHandler("storico",      storico))
+    app.add_handler(CommandHandler("statistiche", statistiche))
+    app.add_handler(CallbackQueryHandler(gestisci_storico, pattern=r"^storico_"))
     app.add_handler(CommandHandler("assegnate",  assegnate))
     app.add_handler(CallbackQueryHandler(gestisci_sblocco, pattern=r"^sblocca_"))
 
