@@ -34,459 +34,414 @@ DB_PATH = "assistenza.db"
 
 TESTI = {
     "it": {
-        "nome":           "👤 Scrivi il tuo *nome e cognome*:",
-        "indirizzo":      "📍 Scrivi il tuo *indirizzo completo* (via, numero civico e città):",
-        "telefono":       "📞 Scrivi il tuo *numero di telefono*:",
-        "foto_targhetta": "📸 Fai una *foto alla targhetta della macchina* e inviala (oppure scrivi 'salta'):",
-        "marca":          "🏷 Dimmi la *marca della macchina*:",
-        "modello":        "📋 Dimmi il *modello della macchina*:",
-        "seriale":        "🔢 Dimmi il *numero seriale* della macchina:",
-        "problema":       "🔧 Descrivi il *problema della macchina*:",
-        "foto_macchina":  "📸 Fai una *foto alla macchina* e inviala (oppure scrivi 'salta'):",
-        "riepilogo":      "📋 *Riepilogo:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 Seriale: {seriale}\n🔧 {problema}\n\nÈ tutto corretto?",
-        "si":             "✅ Sì, confermo",
-        "no":             "❌ No, ricomincio",
+        "nome":           "┌─────────────────────\n│ 👤  *DATI PERSONALI*\n└─────────────────────\n\nCome ti chiami?\n_Scrivi nome e cognome_",
+        "indirizzo":      "📍 *Indirizzo di intervento*\n\n_Via, numero civico e città_",
+        "telefono":       "📞 *Numero di telefono*\n\n_Ti contatteremo su questo numero_",
+        "foto_targhetta": "📸 *Foto targhetta macchina*\n\n_Inquadra l\'etichetta con marca, modello e seriale_\n\nSe non riesci scrivi *salta*",
+        "marca":          "🏭 *Marca della macchina*\n\n_Es: Samsung, LG, Bosch..._",
+        "modello":        "🔖 *Modello della macchina*\n\n_Lo trovi sulla targhetta o nel libretto_",
+        "seriale":        "🔢 *Numero seriale*\n\n_Lo trovi sulla targhetta del macchinario_",
+        "problema":       "🔧 *Descrivi il problema*\n\n_Cosa succede? Da quando? Hai già provato qualcosa?_",
+        "foto_macchina":  "📷 *Foto della macchina*\n\n_Una foto ci aiuta a preparare l\'intervento_\n\nSe non riesci scrivi *salta*",
+        "riepilogo": (
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "📋  *RIEPILOGO RICHIESTA*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "👤  {nome}\n"
+            "📍  {indirizzo}\n"
+            "📞  {telefono}\n\n"
+            "🏭  *{marca}*  ·  {modello}\n"
+            "🔢  Seriale: {seriale}\n\n"
+            "🔧  _{problema}_\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "È tutto corretto?"
+        ),
+        "si":  "✅  Confermo",
+        "no":  "✏️  Correggi",
         "registrata": (
-            "Gentile Cliente,\n"
-            "Grazie per aver contattato il nostro servizio di assistenza tecnica. "
-            "La sua richiesta è stata ricevuta e un nostro tecnico sarà disponibile a breve.\n\n"
-            "📋 *INFORMAZIONI SUL SERVIZIO*\n\n"
-            "*Zona di Roma:*\n"
-            "• Chiamata + 1 ora di lavoro (o frazione): € 80,00 + IVA\n"
-            "• Ore successive alla prima: € 40,00/ora + IVA\n\n"
-            "*Provincia di Roma e altre regioni*\n"
-            "_(Latina, Frosinone, Rieti, Viterbo e resto d'Italia):_\n"
-            "• Trasferta: € 0,70/km + IVA _(andata e ritorno)_\n"
-            "• Ore di viaggio: € 32,00/ora + IVA _(andata e ritorno)_\n"
-            "• Ore di lavoro: € 40,00/ora + IVA _(o frazione d'ora)_\n\n"
-            "⚠️ *ANNULLAMENTO CHIAMATA*\n"
-            "Per annullare contatti URGENTEMENTE il nr. +39 06 41 40 0514.\n"
+            "✅ *Richiesta ricevuta!*\n\n"
+            "Gentile Cliente, la sua richiesta è stata registrata.\n"
+            "Un tecnico *Rotondi Group Roma* la contatterà a breve.\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "💶  *TARIFFE*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "📍 *Zona di Roma*\n"
+            "› Uscita + 1h lavoro: *€ 80,00 + IVA*\n"
+            "› Ore successive: *€ 40,00/h + IVA*\n\n"
+            "🗺 *Fuori Roma* _(Latina, Frosinone, Rieti, Viterbo e resto d\'Italia)_\n"
+            "› Km: *€ 0,70/km + IVA* _(A/R)_\n"
+            "› Viaggio: *€ 32,00/h + IVA* _(A/R)_\n"
+            "› Lavoro: *€ 40,00/h + IVA*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "⚠️ Per *annullare* contatti URGENTEMENTE:\n"
+            "📞 +39 06 41 40 0514\n"
             "In assenza di disdetta verrà addebitato il costo di uscita.\n\n"
-            "_Il Team di Assistenza Tecnica Rotondi Group Roma_"
+            "_Il Team Rotondi Group Roma_"
         ),
         "assegnata": (
-            "Gentile Cliente,\n"
-            "La informiamo che la sua richiesta di assistenza è stata assegnata.\n\n"
-            "👨‍🔧 *Tecnico assegnato:* {tecnico}\n"
-            "📞 *Ufficio Roma:* +39 06 41400617\n"
-            "⏰ *Intervento previsto:* {fascia}\n\n"
-            "📋 *INFORMAZIONI SUL SERVIZIO*\n\n"
-            "*Zona di Roma:*\n"
-            "• Chiamata + 1 ora di lavoro (o frazione): € 80,00 + IVA\n"
-            "• Ore successive alla prima: € 40,00/ora + IVA\n\n"
-            "*Provincia di Roma e altre regioni*\n"
-            "_(Latina, Frosinone, Rieti, Viterbo e resto d'Italia):_\n"
-            "• Trasferta: € 0,70/km + IVA _(andata e ritorno)_\n"
-            "• Ore di viaggio: € 32,00/ora + IVA _(andata e ritorno)_\n"
-            "• Ore di lavoro: € 40,00/ora + IVA _(o frazione d'ora)_\n\n"
-            "Nota: Il pagamento dovrà essere effettuato direttamente al tecnico al termine del servizio.\n\n"
-            "I tecnici che operano con Rotondi Group sono professionisti freelance selezionati e incaricati dalla nostra azienda.\n\n"
-            "⚠️ Per annullare contatti URGENTEMENTE il nr. +39 06 41 40 0514.\n"
-            "In assenza di disdetta verrà addebitato il costo di uscita.\n\n"
-            "_Il Team di Assistenza Tecnica Rotondi Group Roma_"
+            "🎯 *Tecnico assegnato!*\n\n"
+            "Gentile Cliente, la sua richiesta è stata presa in carico.\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  Ufficio Roma: +39 06 41400617\n"
+            "⏰  Arrivo previsto: *{fascia}*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "💶  *TARIFFE*\n"
+            "› Roma: Uscita + 1h → *€ 80,00 + IVA*\n"
+            "› Fuori Roma: *€ 0,70/km + € 32,00/h viaggio + IVA*\n\n"
+            "_Il pagamento va effettuato direttamente al tecnico._\n"
+            "_I nostri tecnici sono professionisti selezionati da Rotondi Group._\n\n"
+            "⚠️ Per annullare: 📞 *+39 06 41 40 0514*\n"
+            "_In assenza di disdetta verrà addebitato il costo di uscita._\n\n"
+            "_Il Team Rotondi Group Roma_"
         ),
         "proposta": (
-            "Gentile Cliente,\n"
-            "Un tecnico ha proposto un appuntamento per la sua richiesta di assistenza.\n\n"
-            "👨‍🔧 *Tecnico:* {tecnico}\n"
-            "📅 *Data e ora proposta:* {data_ora}\n\n"
-            "Vuole accettare questo appuntamento?"
+            "📅 *Proposta di appuntamento*\n\n"
+            "Il tecnico *{tecnico}* propone di intervenire il:\n\n"
+            "🗓  *{data_ora}*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "Accetta questa proposta?\n\n"
+            "⚠️ _Se rifiuta, la richiesta tornerà disponibile per altri tecnici._"
         ),
         "proposta_accettata": (
-            "Gentile Cliente,\n"
-            "L'appuntamento è stato confermato!\n\n"
-            "👨‍🔧 *Tecnico assegnato:* {tecnico}\n"
-            "📞 *Ufficio Roma:* +39 06 41400617\n"
-            "📅 *Appuntamento:* {data_ora}\n\n"
-            "📋 *INFORMAZIONI SUL SERVIZIO*\n\n"
-            "*Zona di Roma:*\n"
-            "• Chiamata + 1 ora di lavoro (o frazione): € 80,00 + IVA\n"
-            "• Ore successive alla prima: € 40,00/ora + IVA\n\n"
-            "*Provincia di Roma e altre regioni*\n"
-            "_(Latina, Frosinone, Rieti, Viterbo e resto d'Italia):_\n"
-            "• Trasferta: € 0,70/km + IVA _(andata e ritorno)_\n"
-            "• Ore di viaggio: € 32,00/ora + IVA _(andata e ritorno)_\n"
-            "• Ore di lavoro: € 40,00/ora + IVA _(o frazione d'ora)_\n\n"
-            "⚠️ Per annullare contatti URGENTEMENTE il nr. +39 06 41 40 0514.\n\n"
-            "_Il Team di Assistenza Tecnica Rotondi Group Roma_"
+            "🎉 *Appuntamento confermato!*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  Ufficio Roma: +39 06 41400617\n"
+            "🗓  *{data_ora}*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "💶  *TARIFFE*\n"
+            "› Roma: Uscita + 1h → *€ 80,00 + IVA*\n"
+            "› Fuori Roma: *€ 0,70/km + € 32,00/h viaggio + IVA*\n\n"
+            "⚠️ Per annullare: 📞 *+39 06 41 40 0514*\n"
+            "_In assenza di disdetta verrà addebitato il costo di uscita._\n\n"
+            "_Il Team Rotondi Group Roma_"
         ),
         "proposta_rifiutata": (
-            "Gentile Cliente,\n"
-            "Ha rifiutato la proposta di appuntamento.\n"
-            "La sua richiesta è tornata disponibile e un altro tecnico la contatterà presto.\n\n"
-            "_Il Team di Assistenza Tecnica Rotondi Group Roma_"
+            "❌ *Proposta rifiutata*\n\n"
+            "La sua richiesta è ancora aperta.\n"
+            "Un altro tecnico la prenderà in carico a breve.\n\n"
+            "_Il Team Rotondi Group Roma_"
         ),
-        "annulla": "❌ Operazione annullata. Scrivi /start per ricominciare.",
-        "proposta": (
-            "Gentile Cliente,\n"
-            "Il tecnico *{tecnico}* ha proposto un intervento per:\n\n"
-            "📅 *{data_ora}*\n\n"
-            "Accetta questa data e ora?\n\n"
-            "⚠️ Se rifiuti, la chiamata tornerà disponibile per altri tecnici."
+        "riassegnazione": (
+            "ℹ️ *Aggiornamento sulla sua richiesta*\n\n"
+            "La sua richiesta di assistenza è stata rimessa in circolo.\n"
+            "Un nuovo tecnico la prenderà in carico a breve.\n\n"
+            "_Il Team Rotondi Group Roma_"
         ),
-        "proposta_accettata": (
-            "Gentile Cliente,\n"
-            "Perfetto! Ha confermato l'appuntamento.\n\n"
-            "👨‍🔧 *Tecnico:* {tecnico}\n"
-            "📅 *Data e ora:* {data_ora}\n"
-            "📞 *Ufficio Roma:* +39 06 41400617\n\n"
-            "📋 *INFORMAZIONI SUL SERVIZIO*\n\n"
-            "*Zona di Roma:*\n"
-            "• Chiamata + 1 ora di lavoro (o frazione): € 80,00 + IVA\n"
-            "• Ore successive alla prima: € 40,00/ora + IVA\n\n"
-            "*Provincia di Roma e altre regioni*\n"
-            "_(Latina, Frosinone, Rieti, Viterbo e resto d'Italia):_\n"
-            "• Trasferta: € 0,70/km + IVA _(andata e ritorno)_\n"
-            "• Ore di viaggio: € 32,00/ora + IVA _(andata e ritorno)_\n"
-            "• Ore di lavoro: € 40,00/ora + IVA _(o frazione d'ora)_\n\n"
-            "⚠️ Per annullare contatti URGENTEMENTE il nr. +39 06 41 40 0514.\n"
-            "In assenza di disdetta verrà addebitato il costo di uscita.\n\n"
-            "_Il Team di Assistenza Tecnica Rotondi Group Roma_"
-        ),
-        "proposta_rifiutata": (
-            "Gentile Cliente,\n"
-            "Ha rifiutato la proposta. La sua richiesta è ancora aperta e un altro tecnico "
-            "potrà prenderla in carico a breve.\n\n"
-            "_Il Team di Assistenza Tecnica Rotondi Group Roma_"
-        ),
+        "annulla": "❌ Operazione annullata.\n\nScrivi /start per ricominciare.",
     },
     "en": {
-        "nome":           "👤 Write your *full name*:",
-        "indirizzo":      "📍 Write your *full address* (street, number and city):",
-        "telefono":       "📞 Write your *phone number*:",
-        "foto_targhetta": "📸 Take a *photo of the machine's label* and send it (or write 'skip'):",
-        "marca":          "🏷 Tell me the *brand of the machine*:",
-        "modello":        "📋 Tell me the *model of the machine*:",
-        "seriale":        "🔢 Tell me the *serial number* of the machine:",
-        "problema":       "🔧 Describe the *problem with the machine*:",
-        "foto_macchina":  "📸 Take a *photo of the machine* and send it (or write 'skip'):",
-        "riepilogo":      "📋 *Summary:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 Serial: {seriale}\n🔧 {problema}\n\nIs everything correct?",
-        "si":             "✅ Yes, confirm",
-        "no":             "❌ No, start over",
+        "nome":           "┌─────────────────────\n│ 👤  *PERSONAL DETAILS*\n└─────────────────────\n\nWhat is your name?\n_Write your full name_",
+        "indirizzo":      "📍 *Intervention address*\n\n_Street, number and city_",
+        "telefono":       "📞 *Phone number*\n\n_We will contact you on this number_",
+        "foto_targhetta": "📸 *Machine label photo*\n\n_Frame the label with brand, model and serial_\n\nIf you can\'t, write *skip*",
+        "marca":          "🏭 *Machine brand*\n\n_E.g: Samsung, LG, Bosch..._",
+        "modello":        "🔖 *Machine model*\n\n_Find it on the label or manual_",
+        "seriale":        "🔢 *Serial number*\n\n_Find it on the machine label_",
+        "problema":       "🔧 *Describe the problem*\n\n_What happens? Since when? Have you tried anything?_",
+        "foto_macchina":  "📷 *Machine photo*\n\n_A photo helps us prepare the intervention_\n\nIf you can\'t, write *skip*",
+        "riepilogo": (
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "📋  *REQUEST SUMMARY*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "👤  {nome}\n"
+            "📍  {indirizzo}\n"
+            "📞  {telefono}\n\n"
+            "🏭  *{marca}*  ·  {modello}\n"
+            "🔢  Serial: {seriale}\n\n"
+            "🔧  _{problema}_\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "Is everything correct?"
+        ),
+        "si":  "✅  Confirm",
+        "no":  "✏️  Correct",
         "registrata": (
-            "Dear Customer,\n"
-            "Thank you for contacting our technical assistance service. "
-            "Your request has been received and one of our technicians will be available shortly.\n\n"
-            "📋 *SERVICE INFORMATION*\n\n"
-            "*Rome area:*\n"
-            "• Call-out + 1 hour of work (or fraction): € 80.00 + VAT\n"
-            "• Additional hours after the first: € 40.00/hour + VAT\n\n"
-            "*Province of Rome and other regions*\n"
-            "_(Latina, Frosinone, Rieti, Viterbo and rest of Italy):_\n"
-            "• Travel: € 0.70/km + VAT _(round trip)_\n"
-            "• Travel hours: € 32.00/hour + VAT _(round trip)_\n"
-            "• Work hours: € 40.00/hour + VAT _(or fraction)_\n\n"
-            "⚠️ *CANCELLATION*\n"
-            "To cancel contact URGENTLY: +39 06 41 40 0514.\n"
-            "Without cancellation, the call-out fee will be charged.\n\n"
-            "_The Rotondi Group Roma Technical Assistance Team_"
+            "✅ *Request received!*\n\n"
+            "Dear Customer, your request has been registered.\n"
+            "A *Rotondi Group Roma* technician will contact you shortly.\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "💶  *RATES*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "📍 *Rome area*\n"
+            "› Call-out + 1h work: *€ 80.00 + VAT*\n"
+            "› Additional hours: *€ 40.00/h + VAT*\n\n"
+            "🗺 *Outside Rome*\n"
+            "› Travel: *€ 0.70/km + VAT* _(return)_\n"
+            "› Travel time: *€ 32.00/h + VAT*\n"
+            "› Work: *€ 40.00/h + VAT*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "⚠️ To *cancel* contact URGENTLY:\n"
+            "📞 +39 06 41 40 0514\n\n"
+            "_The Rotondi Group Roma Team_"
         ),
         "assegnata": (
-            "Dear Customer,\n"
-            "Your assistance request has been assigned.\n\n"
-            "👨‍🔧 *Assigned technician:* {tecnico}\n"
-            "📞 *Rome Office:* +39 06 41400617\n"
-            "⏰ *Scheduled intervention:* {fascia}\n\n"
-            "📋 *SERVICE INFORMATION*\n\n"
-            "*Rome area:*\n"
-            "• Call-out + 1 hour of work (or fraction): € 80.00 + VAT\n"
-            "• Additional hours after the first: € 40.00/hour + VAT\n\n"
-            "*Province of Rome and other regions*\n"
-            "_(Latina, Frosinone, Rieti, Viterbo and rest of Italy):_\n"
-            "• Travel: € 0.70/km + VAT _(round trip)_\n"
-            "• Travel hours: € 32.00/hour + VAT _(round trip)_\n"
-            "• Work hours: € 40.00/hour + VAT _(or fraction)_\n\n"
-            "⚠️ To cancel contact URGENTLY: +39 06 41 40 0514.\n\n"
-            "_The Rotondi Group Roma Technical Assistance Team_"
+            "🎯 *Technician assigned!*\n\n"
+            "Dear Customer, your request has been taken on.\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  Rome Office: +39 06 41400617\n"
+            "⏰  Expected arrival: *{fascia}*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ To cancel: 📞 *+39 06 41 40 0514*\n\n"
+            "_The Rotondi Group Roma Team_"
         ),
         "proposta": (
-            "Dear Customer,\n"
-            "A technician has proposed an appointment for your assistance request.\n\n"
-            "👨‍🔧 *Technician:* {tecnico}\n"
-            "📅 *Proposed date and time:* {data_ora}\n\n"
-            "Do you want to accept this appointment?"
+            "📅 *Appointment proposal*\n\n"
+            "Technician *{tecnico}* proposes to intervene on:\n\n"
+            "🗓  *{data_ora}*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "Do you accept this proposal?\n\n"
+            "⚠️ _If you decline, the request will be available for other technicians._"
         ),
         "proposta_accettata": (
-            "Dear Customer,\n"
-            "Your appointment has been confirmed!\n\n"
-            "👨‍🔧 *Assigned technician:* {tecnico}\n"
-            "📞 *Rome Office:* +39 06 41400617\n"
-            "📅 *Appointment:* {data_ora}\n\n"
-            "⚠️ To cancel contact URGENTLY: +39 06 41 40 0514.\n\n"
-            "_The Rotondi Group Roma Technical Assistance Team_"
+            "🎉 *Appointment confirmed!*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  Rome Office: +39 06 41400617\n"
+            "🗓  *{data_ora}*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ To cancel: 📞 *+39 06 41 40 0514*\n\n"
+            "_The Rotondi Group Roma Team_"
         ),
         "proposta_rifiutata": (
-            "Dear Customer,\n"
-            "You have declined the appointment proposal.\n"
-            "Your request is now available again and another technician will contact you soon.\n\n"
-            "_The Rotondi Group Roma Technical Assistance Team_"
+            "❌ *Proposal declined*\n\n"
+            "Your request is still open.\n"
+            "Another technician will take it on shortly.\n\n"
+            "_The Rotondi Group Roma Team_"
         ),
-        "annulla": "❌ Cancelled. Write /start to begin again.",
-        "proposta": (
-            "Dear Customer,\n"
-            "Technician *{tecnico}* has proposed an intervention for:\n\n"
-            "📅 *{data_ora}*\n\n"
-            "Do you accept this date and time?\n\n"
-            "⚠️ If you decline, the request will be available for other technicians."
+        "riassegnazione": (
+            "ℹ️ *Update on your request*\n\n"
+            "Your assistance request has been re-opened.\n"
+            "A new technician will take it on shortly.\n\n"
+            "_The Rotondi Group Roma Team_"
         ),
-        "proposta_accettata": (
-            "Dear Customer,\n"
-            "Great! You have confirmed the appointment.\n\n"
-            "👨‍🔧 *Technician:* {tecnico}\n"
-            "📅 *Date and time:* {data_ora}\n"
-            "📞 *Rome Office:* +39 06 41400617\n\n"
-            "⚠️ To cancel contact URGENTLY: +39 06 41 40 0514.\n"
-            "Without cancellation, the call-out fee will be charged.\n\n"
-            "_The Rotondi Group Roma Technical Assistance Team_"
-        ),
-        "proposta_rifiutata": (
-            "Dear Customer,\n"
-            "You have declined the proposal. Your request is still open and another technician "
-            "will be able to take it shortly.\n\n"
-            "_The Rotondi Group Roma Technical Assistance Team_"
-        ),
+        "annulla": "❌ Cancelled.\n\nWrite /start to begin again.",
     },
     "bn": {
-        "nome":           "👤 আপনার *পুরো নাম* লিখুন:",
-        "indirizzo":      "📍 আপনার *সম্পূর্ণ ঠিকানা* লিখুন (রাস্তা, নম্বর এবং শহর):",
-        "telefono":       "📞 আপনার *ফোন নম্বর* লিখুন:",
-        "foto_targhetta": "📸 মেশিনের *তারিখফলকের ছবি* পাঠান (অথবা 'skip' লিখুন):",
-        "marca":          "🏷 মেশিনের *ব্র্যান্ড* বলুন:",
-        "modello":        "📋 মেশিনের *মডেল* বলুন:",
-        "seriale":        "🔢 মেশিনের *সিরিয়াল নম্বর* বলুন:",
-        "problema":       "🔧 মেশিনের *সমস্যা* বর্ণনা করুন:",
-        "foto_macchina":  "📸 মেশিনের *ছবি* পাঠান (অথবা 'skip' লিখুন):",
-        "riepilogo":      "📋 *সারসংক্ষেপ:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 সিরিয়াল: {seriale}\n🔧 {problema}\n\nসব ঠিক আছে?",
-        "si":             "✅ হ্যাঁ, নিশ্চিত",
-        "no":             "❌ না, আবার শুরু",
+        "nome":           "┌─────────────────────\n│ 👤  *ব্যক্তিগত তথ্য*\n└─────────────────────\n\nআপনার নাম কি?\n_পুরো নাম লিখুন_",
+        "indirizzo":      "📍 *হস্তক্ষেপের ঠিকানা*\n\n_রাস্তা, নম্বর এবং শহর_",
+        "telefono":       "📞 *ফোন নম্বর*\n\n_এই নম্বরে আপনার সাথে যোগাযোগ করা হবে_",
+        "foto_targhetta": "📸 *মেশিনের তারিখফলকের ছবি*\n\nসম্ভব না হলে *skip* লিখুন",
+        "marca":          "🏭 *মেশিনের ব্র্যান্ড*\n\n_যেমন: Samsung, LG, Bosch..._",
+        "modello":        "🔖 *মেশিনের মডেল*\n\n_তারিখফলক বা ম্যানুয়ালে পাবেন_",
+        "seriale":        "🔢 *সিরিয়াল নম্বর*\n\n_মেশিনের তারিখফলকে পাবেন_",
+        "problema":       "🔧 *সমস্যা বর্ণনা করুন*\n\n_কী হচ্ছে? কবে থেকে? কিছু চেষ্টা করেছেন?_",
+        "foto_macchina":  "📷 *মেশিনের ছবি*\n\nসম্ভব না হলে *skip* লিখুন",
+        "riepilogo": (
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "📋  *অনুরোধের সারসংক্ষেপ*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "👤  {nome}\n"
+            "📍  {indirizzo}\n"
+            "📞  {telefono}\n\n"
+            "🏭  *{marca}*  ·  {modello}\n"
+            "🔢  সিরিয়াল: {seriale}\n\n"
+            "🔧  _{problema}_\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "সব ঠিক আছে?"
+        ),
+        "si":  "✅  নিশ্চিত",
+        "no":  "✏️  সংশোধন",
         "registrata": (
-            "প্রিয় গ্রাহক,\n"
-            "আমাদের প্রযুক্তিগত সহায়তা সেবায় যোগাযোগ করার জন্য ধন্যবাদ।\n\n"
-            "📋 *সেবার তথ্য*\n\n"
-            "*রোমা শহর:*\n"
-            "• আসার চার্জ + ১ ঘণ্টা কাজ: € 80,00 + VAT\n"
-            "• প্রথম ঘণ্টার পরে প্রতি ঘণ্টা: € 40,00 + VAT\n\n"
-            "*রোমা প্রদেশ ও অন্যান্য অঞ্চল:*\n"
-            "• যাতায়াত: € 0,70/কিমি + VAT\n"
-            "• ভ্রমণ সময়: € 32,00/ঘণ্টা + VAT\n"
-            "• কাজের সময়: € 40,00/ঘণ্টা + VAT\n\n"
-            "⚠️ বাতিল করতে জরুরি যোগাযোগ করুন: +39 06 41 40 0514\n\n"
-            "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
+            "✅ *অনুরোধ পাওয়া গেছে!*\n\n"
+            "প্রিয় গ্রাহক, আপনার অনুরোধ নিবন্ধিত হয়েছে।\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "💶  *তারিফ*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "📍 *রোমা শহর:* আসার চার্জ + ১ ঘণ্টা → *€ 80,00 + VAT*\n"
+            "🗺 *রোমার বাইরে:* € 0,70/কিমি + € 32,00/ঘণ্টা ভ্রমণ\n\n"
+            "⚠️ বাতিল করতে: 📞 *+39 06 41 40 0514*\n\n"
+            "_রোটোন্ডি গ্রুপ রোমা টিম_"
         ),
         "assegnata": (
-            "প্রিয় গ্রাহক,\n"
-            "আপনার অনুরোধ একজন টেকনিশিয়ানকে দেওয়া হয়েছে।\n\n"
-            "👨‍🔧 *টেকনিশিয়ান:* {tecnico}\n"
-            "📞 *রোমা অফিস:* +39 06 41400617\n"
-            "⏰ *আসার সময়:* {fascia}\n\n"
-            "⚠️ বাতিল করতে জরুরি: +39 06 41 40 0514\n\n"
-            "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
+            "🎯 *টেকনিশিয়ান নিয়োগ হয়েছে!*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  রোমা অফিস: +39 06 41400617\n"
+            "⏰  আসার সময়: *{fascia}*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ বাতিল: 📞 *+39 06 41 40 0514*\n\n"
+            "_রোটোন্ডি গ্রুপ রোমা টিম_"
         ),
         "proposta": (
-            "প্রিয় গ্রাহক,\n"
-            "একজন টেকনিশিয়ান একটি অ্যাপয়েন্টমেন্ট প্রস্তাব করেছেন।\n\n"
-            "👨‍🔧 *টেকনিশিয়ান:* {tecnico}\n"
-            "📅 *প্রস্তাবিত তারিখ ও সময়:* {data_ora}\n\n"
-            "আপনি কি এই অ্যাপয়েন্টমেন্ট গ্রহণ করতে চান?"
+            "📅 *অ্যাপয়েন্টমেন্ট প্রস্তাব*\n\n"
+            "টেকনিশিয়ান *{tecnico}* প্রস্তাব করেছেন:\n\n"
+            "🗓  *{data_ora}*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "আপনি কি এটি গ্রহণ করবেন?"
         ),
         "proposta_accettata": (
-            "প্রিয় গ্রাহক,\n"
-            "আপনার অ্যাপয়েন্টমেন্ট নিশ্চিত হয়েছে!\n\n"
-            "👨‍🔧 *টেকনিশিয়ান:* {tecnico}\n"
-            "📞 *রোমা অফিস:* +39 06 41400617\n"
-            "📅 *অ্যাপয়েন্টমেন্ট:* {data_ora}\n\n"
-            "⚠️ বাতিল করতে জরুরি: +39 06 41 40 0514\n\n"
-            "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
+            "🎉 *অ্যাপয়েন্টমেন্ট নিশ্চিত!*\n\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  +39 06 41400617\n"
+            "🗓  *{data_ora}*\n\n"
+            "⚠️ বাতিল: 📞 *+39 06 41 40 0514*\n\n"
+            "_রোটোন্ডি গ্রুপ রোমা টিম_"
         ),
         "proposta_rifiutata": (
-            "প্রিয় গ্রাহক,\n"
-            "আপনি প্রস্তাব প্রত্যাখ্যান করেছেন। অনুরোধটি আবার উপলব্ধ।\n\n"
-            "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
+            "❌ *প্রস্তাব প্রত্যাখ্যাত*\n\n"
+            "আপনার অনুরোধ এখনও খোলা আছে।\n\n"
+            "_রোটোন্ডি গ্রুপ রোমা টিম_"
         ),
-        "annulla": "❌ বাতিল হয়েছে। আবার শুরু করতে /start লিখুন।",
-        "proposta": (
-            "প্রিয় গ্রাহক,\n"
-            "টেকনিশিয়ান *{tecnico}* একটি সময় প্রস্তাব করেছেন:\n\n"
-            "📅 *{data_ora}*\n\n"
-            "আপনি কি এই তারিখ ও সময় গ্রহণ করবেন?\n\n"
-            "⚠️ প্রত্যাখ্যান করলে অনুরোধটি অন্য টেকনিশিয়ানের জন্য উন্মুক্ত থাকবে।"
+        "riassegnazione": (
+            "ℹ️ *আপনার অনুরোধের আপডেট*\n\n"
+            "আপনার অনুরোধ পুনরায় খোলা হয়েছে।\n"
+            "একজন নতুন টেকনিশিয়ান শীঘ্রই দায়িত্ব নেবেন।\n\n"
+            "_রোটোন্ডি গ্রুপ রোমা টিম_"
         ),
-        "proposta_accettata": (
-            "প্রিয় গ্রাহক,\n"
-            "আপনি অ্যাপয়েন্টমেন্ট নিশ্চিত করেছেন।\n\n"
-            "👨‍🔧 *টেকনিশিয়ান:* {tecnico}\n"
-            "📅 *তারিখ ও সময়:* {data_ora}\n"
-            "📞 *রোমা অফিস:* +39 06 41400617\n\n"
-            "⚠️ বাতিল করতে জরুরি: +39 06 41 40 0514\n\n"
-            "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
-        ),
-        "proposta_rifiutata": (
-            "প্রিয় গ্রাহক,\n"
-            "আপনি প্রস্তাব প্রত্যাখ্যান করেছেন। আপনার অনুরোধ এখনও খোলা আছে।\n\n"
-            "_রোটোন্ডি গ্রুপ রোমা টেকনিক্যাল টিম_"
-        ),
+        "annulla": "❌ বাতিল হয়েছে।\n\nআবার শুরু করতে /start লিখুন।",
     },
     "zh": {
-        "nome":           "👤 请写您的*姓名*：",
-        "indirizzo":      "📍 请写您的*完整地址*（街道、门牌号和城市）：",
-        "telefono":       "📞 请写您的*电话号码*：",
-        "foto_targhetta": "📸 请拍*机器铭牌照片*发送（或写'跳过'）：",
-        "marca":          "🏷 请告诉我*机器品牌*：",
-        "modello":        "📋 请告诉我*机器型号*：",
-        "seriale":        "🔢 请告诉我*序列号*：",
-        "problema":       "🔧 请描述*机器的问题*：",
-        "foto_macchina":  "📸 请拍*机器照片*发送（或写'跳过'）：",
-        "riepilogo":      "📋 *摘要：*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 序列号: {seriale}\n🔧 {problema}\n\n一切正确吗？",
-        "si":             "✅ 是，确认",
-        "no":             "❌ 否，重新开始",
+        "nome":           "┌─────────────────────\n│ 👤  *个人信息*\n└─────────────────────\n\n您叫什么名字？\n_请写全名_",
+        "indirizzo":      "📍 *干预地址*\n\n_街道、门牌号和城市_",
+        "telefono":       "📞 *电话号码*\n\n_我们将通过此号码联系您_",
+        "foto_targhetta": "📸 *机器铭牌照片*\n\n如果无法拍照，请写 *跳过*",
+        "marca":          "🏭 *机器品牌*\n\n_如: Samsung, LG, Bosch..._",
+        "modello":        "🔖 *机器型号*\n\n_在铭牌或说明书上_",
+        "seriale":        "🔢 *序列号*\n\n_在机器铭牌上_",
+        "problema":       "🔧 *描述问题*\n\n_发生了什么？什么时候开始的？_",
+        "foto_macchina":  "📷 *机器照片*\n\n如果无法拍照，请写 *跳过*",
+        "riepilogo": (
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "📋  *请求摘要*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "👤  {nome}\n"
+            "📍  {indirizzo}\n"
+            "📞  {telefono}\n\n"
+            "🏭  *{marca}*  ·  {modello}\n"
+            "🔢  序列号: {seriale}\n\n"
+            "🔧  _{problema}_\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "一切正确吗？"
+        ),
+        "si":  "✅  确认",
+        "no":  "✏️  更正",
         "registrata": (
-            "尊敬的客户，\n"
-            "感谢您联系我们的技术援助服务。\n\n"
-            "📋 *服务信息*\n\n"
-            "*罗马市区:*\n"
-            "• 上门费 + 1小时工作: € 80,00 + 增值税\n"
-            "• 第一小时后每小时: € 40,00 + 增值税\n\n"
-            "*罗马省及其他地区:*\n"
-            "• 交通费: € 0,70/公里 + 增值税\n"
-            "• 路途时间: € 32,00/小时 + 增值税\n"
-            "• 工作时间: € 40,00/小时 + 增值税\n\n"
-            "⚠️ 如需取消请紧急联系: +39 06 41 40 0514\n\n"
-            "_罗通迪集团罗马技术团队_"
+            "✅ *请求已收到！*\n\n"
+            "尊敬的客户，您的请求已注册。\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "💶  *费率*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "📍 *罗马市区:* 上门费 + 1小时 → *€ 80,00 + 增值税*\n"
+            "🗺 *罗马以外:* € 0,70/公里 + € 32,00/小时路途\n\n"
+            "⚠️ 取消请紧急联系: 📞 *+39 06 41 40 0514*\n\n"
+            "_罗通迪集团罗马团队_"
         ),
         "assegnata": (
-            "尊敬的客户，\n"
-            "您的维修请求已分配给技术人员。\n\n"
-            "👨‍🔧 *负责技术人员：* {tecnico}\n"
-            "📞 *罗马办公室：* +39 06 41400617\n"
-            "⏰ *预计上门时间：* {fascia}\n\n"
-            "⚠️ 如需取消请紧急联系: +39 06 41 40 0514\n\n"
-            "_罗通迪集团罗马技术团队_"
+            "🎯 *已分配技术人员！*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  罗马办公室: +39 06 41400617\n"
+            "⏰  预计到达: *{fascia}*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ 取消: 📞 *+39 06 41 40 0514*\n\n"
+            "_罗通迪集团罗马团队_"
         ),
         "proposta": (
-            "尊敬的客户，\n"
-            "技术人员提议了一个预约时间。\n\n"
-            "👨‍🔧 *技术人员：* {tecnico}\n"
-            "📅 *建议日期和时间：* {data_ora}\n\n"
-            "您是否接受此预约？"
+            "📅 *预约提议*\n\n"
+            "技术人员 *{tecnico}* 提议干预时间：\n\n"
+            "🗓  *{data_ora}*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "您接受此提议吗？"
         ),
         "proposta_accettata": (
-            "尊敬的客户，\n"
-            "您的预约已确认！\n\n"
-            "👨‍🔧 *技术人员：* {tecnico}\n"
-            "📞 *罗马办公室：* +39 06 41400617\n"
-            "📅 *预约时间：* {data_ora}\n\n"
-            "⚠️ 如需取消请紧急联系: +39 06 41 40 0514\n\n"
-            "_罗通迪集团罗马技术团队_"
+            "🎉 *预约已确认！*\n\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  +39 06 41400617\n"
+            "🗓  *{data_ora}*\n\n"
+            "⚠️ 取消: 📞 *+39 06 41 40 0514*\n\n"
+            "_罗通迪集团罗马团队_"
         ),
         "proposta_rifiutata": (
-            "尊敬的客户，\n"
-            "您拒绝了预约提议。您的请求重新开放给其他技术人员。\n\n"
-            "_罗通迪集团罗马技术团队_"
+            "❌ *提议已拒绝*\n\n"
+            "您的请求仍然开放。\n\n"
+            "_罗通迪集团罗马团队_"
         ),
-        "annulla": "❌ 已取消。写 /start 重新开始。",
-        "proposta": (
-            "尊敬的客户，\n"
-            "技术人员 *{tecnico}* 提议上门时间为：\n\n"
-            "📅 *{data_ora}*\n\n"
-            "您是否接受此日期和时间？\n\n"
-            "⚠️ 如果拒绝，请求将对其他技术人员开放。"
+        "riassegnazione": (
+            "ℹ️ *您的请求更新*\n\n"
+            "您的协助请求已重新开放。\n"
+            "新的技术人员将很快接手。\n\n"
+            "_罗通迪集团罗马团队_"
         ),
-        "proposta_accettata": (
-            "尊敬的客户，\n"
-            "您已确认预约。\n\n"
-            "👨‍🔧 *技术人员：* {tecnico}\n"
-            "📅 *日期和时间：* {data_ora}\n"
-            "📞 *罗马办公室：* +39 06 41400617\n\n"
-            "⚠️ 如需取消请紧急联系: +39 06 41 40 0514\n\n"
-            "_罗通迪集团罗马技术团队_"
-        ),
-        "proposta_rifiutata": (
-            "尊敬的客户，\n"
-            "您已拒绝提议。您的请求仍然开放，其他技术人员将很快接手。\n\n"
-            "_罗通迪集团罗马技术团队_"
-        ),
+        "annulla": "❌ 已取消。\n\n写 /start 重新开始。",
     },
     "ar": {
-        "nome":           "👤 اكتب *اسمك الكامل*:",
-        "indirizzo":      "📍 اكتب *عنوانك الكامل* (الشارع والرقم والمدينة):",
-        "telefono":       "📞 اكتب *رقم هاتفك*:",
-        "foto_targhetta": "📸 أرسل *صورة لوحة الجهاز* (أو اكتب 'تخطي'):",
-        "marca":          "🏷 أخبرني *ماركة الجهاز*:",
-        "modello":        "📋 أخبرني *موديل الجهاز*:",
-        "seriale":        "🔢 أخبرني *الرقم التسلسلي* للجهاز:",
-        "problema":       "🔧 صف *مشكلة الجهاز*:",
-        "foto_macchina":  "📸 أرسل *صورة الجهاز* (أو اكتب 'تخطي'):",
-        "riepilogo":      "📋 *الملخص:*\n\n👤 {nome}\n📍 {indirizzo}\n📞 {telefono}\n🏷 {marca} — {modello}\n🔢 الرقم التسلسلي: {seriale}\n🔧 {problema}\n\nهل كل شيء صحيح؟",
-        "si":             "✅ نعم، تأكيد",
-        "no":             "❌ لا، ابدأ من جديد",
+        "nome":           "┌─────────────────────\n│ 👤  *البيانات الشخصية*\n└─────────────────────\n\nما اسمك؟\n_اكتب الاسم الكامل_",
+        "indirizzo":      "📍 *عنوان التدخل*\n\n_الشارع والرقم والمدينة_",
+        "telefono":       "📞 *رقم الهاتف*\n\n_سنتواصل معك على هذا الرقم_",
+        "foto_targhetta": "📸 *صورة لوحة الجهاز*\n\nإذا لم تستطع، اكتب *تخطي*",
+        "marca":          "🏭 *ماركة الجهاز*\n\n_مثل: Samsung, LG, Bosch..._",
+        "modello":        "🔖 *موديل الجهاز*\n\n_موجود على اللوحة أو الدليل_",
+        "seriale":        "🔢 *الرقم التسلسلي*\n\n_موجود على لوحة الجهاز_",
+        "problema":       "🔧 *صف المشكلة*\n\n_ماذا يحدث؟ منذ متى؟_",
+        "foto_macchina":  "📷 *صورة الجهاز*\n\nإذا لم تستطع، اكتب *تخطي*",
+        "riepilogo": (
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "📋  *ملخص الطلب*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "👤  {nome}\n"
+            "📍  {indirizzo}\n"
+            "📞  {telefono}\n\n"
+            "🏭  *{marca}*  ·  {modello}\n"
+            "🔢  الرقم التسلسلي: {seriale}\n\n"
+            "🔧  _{problema}_\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "هل كل شيء صحيح؟"
+        ),
+        "si":  "✅  تأكيد",
+        "no":  "✏️  تصحيح",
         "registrata": (
-            "عزيزي العميل،\n"
-            "شكراً لتواصلك مع خدمة الدعم الفني لدينا.\n\n"
-            "📋 *معلومات الخدمة*\n\n"
-            "*منطقة روما:*\n"
-            "• زيارة + ساعة عمل: € 80,00 + ضريبة\n"
-            "• الساعات الإضافية: € 40,00/ساعة + ضريبة\n\n"
-            "*مقاطعة روما والمناطق الأخرى:*\n"
-            "• تنقل: € 0,70/كم + ضريبة\n"
-            "• ساعات السفر: € 32,00/ساعة + ضريبة\n"
-            "• ساعات العمل: € 40,00/ساعة + ضريبة\n\n"
-            "⚠️ للإلغاء تواصل عاجلاً: +39 06 41 40 0514\n\n"
-            "_فريق روتوندي جروب روما للدعم الفني_"
+            "✅ *تم استلام طلبك!*\n\n"
+            "عزيزي العميل، تم تسجيل طلبك.\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "💶  *التعريفات*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "📍 *منطقة روما:* زيارة + ساعة → *€ 80,00 + ضريبة*\n"
+            "🗺 *خارج روما:* € 0,70/كم + € 32,00/ساعة سفر\n\n"
+            "⚠️ للإلغاء تواصل عاجلاً: 📞 *+39 06 41 40 0514*\n\n"
+            "_فريق روتوندي جروب روما_"
         ),
         "assegnata": (
-            "عزيزي العميل،\n"
-            "تم تعيين فني لطلبك.\n\n"
-            "👨‍🔧 *الفني المعين:* {tecnico}\n"
-            "📞 *مكتب روما:* +39 06 41400617\n"
-            "⏰ *موعد التدخل:* {fascia}\n\n"
-            "⚠️ للإلغاء تواصل عاجلاً: +39 06 41 40 0514\n\n"
-            "_فريق روتوندي جروب روما للدعم الفني_"
+            "🎯 *تم تعيين فني!*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  مكتب روما: +39 06 41400617\n"
+            "⏰  الوصول المتوقع: *{fascia}*\n"
+            "━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ للإلغاء: 📞 *+39 06 41 40 0514*\n\n"
+            "_فريق روتوندي جروب روما_"
         ),
         "proposta": (
-            "عزيزي العميل،\n"
-            "اقترح فني موعداً لطلبك.\n\n"
-            "👨‍🔧 *الفني:* {tecnico}\n"
-            "📅 *التاريخ والوقت المقترح:* {data_ora}\n\n"
-            "هل تقبل هذا الموعد؟"
+            "📅 *اقتراح موعد*\n\n"
+            "الفني *{tecnico}* يقترح التدخل في:\n\n"
+            "🗓  *{data_ora}*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            "هل تقبل هذا الاقتراح؟"
         ),
         "proposta_accettata": (
-            "عزيزي العميل،\n"
-            "تم تأكيد موعدك!\n\n"
-            "👨‍🔧 *الفني:* {tecnico}\n"
-            "📞 *مكتب روما:* +39 06 41400617\n"
-            "📅 *الموعد:* {data_ora}\n\n"
-            "⚠️ للإلغاء تواصل عاجلاً: +39 06 41 40 0514\n\n"
-            "_فريق روتوندي جروب روما للدعم الفني_"
+            "🎉 *تم تأكيد الموعد!*\n\n"
+            "👨‍🔧  *{tecnico}*\n"
+            "📞  +39 06 41400617\n"
+            "🗓  *{data_ora}*\n\n"
+            "⚠️ للإلغاء: 📞 *+39 06 41 40 0514*\n\n"
+            "_فريق روتوندي جروب روما_"
         ),
         "proposta_rifiutata": (
-            "عزيزي العميل،\n"
-            "لقد رفضت اقتراح الموعد. طلبك متاح مجدداً.\n\n"
-            "_فريق روتوندي جروب روما للدعم الفني_"
+            "❌ *تم رفض الاقتراح*\n\n"
+            "طلبك لا يزال مفتوحاً.\n\n"
+            "_فريق روتوندي جروب روما_"
         ),
-        "annulla": "❌ تم الإلغاء. اكتب /start للبدء من جديد.",
-        "proposta": (
-            "عزيزي العميل،\n"
-            "الفني *{tecnico}* اقترح موعداً للتدخل:\n\n"
-            "📅 *{data_ora}*\n\n"
-            "هل تقبل هذا التاريخ والوقت؟\n\n"
-            "⚠️ في حالة الرفض، سيكون الطلب متاحاً لفنيين آخرين."
+        "riassegnazione": (
+            "ℹ️ *تحديث طلبك*\n\n"
+            "تم إعادة فتح طلب المساعدة الخاص بك.\n"
+            "سيتولى فني جديد المهمة قريباً.\n\n"
+            "_فريق روتوندي جروب روما_"
         ),
-        "proposta_accettata": (
-            "عزيزي العميل،\n"
-            "لقد أكدت الموعد.\n\n"
-            "👨‍🔧 *الفني:* {tecnico}\n"
-            "📅 *التاريخ والوقت:* {data_ora}\n"
-            "📞 *مكتب روما:* +39 06 41400617\n\n"
-            "⚠️ للإلغاء تواصل عاجلاً: +39 06 41 40 0514\n\n"
-            "_فريق روتوندي جروب روما للدعم الفني_"
-        ),
-        "proposta_rifiutata": (
-            "عزيزي العميل،\n"
-            "لقد رفضت الاقتراح. طلبك لا يزال مفتوحاً وسيتولى فني آخر قريباً.\n\n"
-            "_فريق روتوندي جروب روما للدعم الفني_"
-        ),
+        "annulla": "❌ تم الإلغاء.\n\nاكتب /start للبدء من جديد.",
     },
 }
+
 
 FLAGS = {"it":"🇮🇹","en":"🇬🇧","bn":"🇧🇩","zh":"🇨🇳","ar":"🇸🇦"}
 
@@ -608,6 +563,15 @@ def get_tecnico_nome(tid):
 def registra_tecnico(tid, nome, telefono=None):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("INSERT OR REPLACE INTO tecnici VALUES (?,?,?)", (tid, nome, telefono))
+        conn.commit()
+
+def sblocca_chiamata_db(cid):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""
+            UPDATE chiamate SET stato='aperta', tecnico_id=NULL, tecnico_nome=NULL,
+            fascia_oraria=NULL, data_assegnazione=NULL,
+            tecnico_proposta_id=NULL, data_ora_proposta=NULL WHERE id=?
+        """, (cid,))
         conn.commit()
 
 def lista_chiamate_db(limite=20):
@@ -1108,31 +1072,151 @@ async def lista(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rows = lista_chiamate_db()
     if not rows:
         await update.message.reply_text("📋 Nessuna chiamata."); return
-    testo = "📋 *Ultime 20 chiamate:*\n\n"
     for r in rows:
         emoji = "🟡" if r[3] == "aperta" else ("⏳" if r[3] == "in_attesa_conferma" else "✅")
         flag  = FLAGS.get(r[7], "🌍")
-        testo += f"{emoji} *#{r[0]}* {flag} — {r[1]}\n📍 {r[2]}\n"
+        testo = f"{emoji} *#{r[0]}* {flag} — {r[1]}\n📍 {r[2]}\n"
         if r[3] in ("assegnata", "in_attesa_conferma"):
             testo += f"👨‍🔧 {r[4]} — {r[5]}\n"
-        testo += f"🕐 {r[6]}\n\n"
-    await update.message.reply_text(testo, parse_mode="Markdown")
+        testo += f"🕐 {r[6]}"
+        # Pulsante sblocco solo per chiamate assegnate o in attesa
+        if r[3] in ("assegnata", "in_attesa_conferma"):
+            kb = InlineKeyboardMarkup([[
+                InlineKeyboardButton("🔓 Sblocca e rimetti in circolo", callback_data=f"sblocca_{r[0]}")
+            ]])
+            await update.message.reply_text(testo, parse_mode="Markdown", reply_markup=kb)
+        else:
+            await update.message.reply_text(testo, parse_mode="Markdown")
 
 async def aperte(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in BACKOFFICE_IDS:
         await update.message.reply_text("⛔ Non autorizzato."); return
     with sqlite3.connect(DB_PATH) as conn:
         rows = conn.execute("""
-            SELECT id,nome_cliente,indirizzo,data_apertura,lingua,stato
+            SELECT id,nome_cliente,indirizzo,data_apertura,lingua,stato,tecnico_nome
             FROM chiamate WHERE stato IN ('aperta','in_attesa_conferma') ORDER BY id DESC
         """).fetchall()
     if not rows:
         await update.message.reply_text("✅ Nessuna chiamata aperta!"); return
-    testo = f"🟡 *Chiamate aperte ({len(rows)}):*\n\n"
+    await update.message.reply_text(f"🟡 *Chiamate aperte: {len(rows)}*", parse_mode="Markdown")
     for r in rows:
         emoji = "⏳" if r[5] == "in_attesa_conferma" else "🟡"
-        testo += f"{emoji} *#{r[0]}* {FLAGS.get(r[4],'🌍')} — {r[1]}\n📍 {r[2]}\n🕐 {r[3]}\n\n"
-    await update.message.reply_text(testo, parse_mode="Markdown")
+        testo = f"{emoji} *#{r[0]}* {FLAGS.get(r[4],'🌍')} — {r[1]}\n📍 {r[2]}\n🕐 {r[3]}"
+        if r[5] == "in_attesa_conferma" and r[6]:
+            testo += f"\n⏳ In attesa conferma da: {r[6]}"
+        await update.message.reply_text(testo, parse_mode="Markdown")
+
+async def assegnate(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in BACKOFFICE_IDS:
+        await update.message.reply_text("⛔ Non autorizzato."); return
+    with sqlite3.connect(DB_PATH) as conn:
+        rows = conn.execute("""
+            SELECT id,nome_cliente,indirizzo,data_apertura,lingua,stato,tecnico_nome,fascia_oraria,data_ora_proposta
+            FROM chiamate WHERE stato IN ('assegnata','in_attesa_conferma') ORDER BY id DESC LIMIT 20
+        """).fetchall()
+    if not rows:
+        await update.message.reply_text("📋 Nessuna chiamata assegnata!"); return
+    await update.message.reply_text(f"✅ *Chiamate assegnate: {len(rows)}*", parse_mode="Markdown")
+    for r in rows:
+        emoji = "⏳" if r[5] == "in_attesa_conferma" else "✅"
+        orario = r[8] if r[5] == "in_attesa_conferma" else r[7]
+        testo = (
+            f"{emoji} *#{r[0]}* {FLAGS.get(r[4],'🌍')} — {r[1]}\n"
+            f"📍 {r[2]}\n"
+            f"👨‍🔧 {r[6] or '—'}\n"
+            f"⏰ {orario or '—'}\n"
+            f"🕐 {r[3]}"
+        )
+        kb = InlineKeyboardMarkup([[
+            InlineKeyboardButton("🔓 Sblocca e rimetti in circolo", callback_data=f"sblocca_{r[0]}")
+        ]])
+        await update.message.reply_text(testo, parse_mode="Markdown", reply_markup=kb)
+
+async def gestisci_sblocco(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if query.from_user.id not in BACKOFFICE_IDS:
+        await query.answer("⛔ Non autorizzato.", show_alert=True); return
+
+    cid = int(query.data.split("_")[1])
+    ch  = get_chiamata(cid)
+    if not ch:
+        await query.answer("⚠️ Chiamata non trovata.", show_alert=True); return
+    if ch[9] == "aperta":
+        await query.answer("ℹ️ La chiamata è già libera.", show_alert=True); return
+
+    tecnico_precedente_id   = ch[10]
+    tecnico_precedente_nome = ch[11] or "—"
+
+    sblocca_chiamata_db(cid)
+
+    await query.edit_message_text(
+        f"🔓 *CHIAMATA #{cid} — SBLOCCATA*\n{'─'*28}\n"
+        f"👤 *Cliente:* {ch[4]}\n"
+        f"📍 *Indirizzo:* {ch[5]}\n"
+        f"🔧 *Problema:* {ch[7]}\n"
+        f"{'─'*28}\n"
+        f"_Rimessa in circolo dal back office_",
+        parse_mode="Markdown"
+    )
+
+    # Rimanda notifica al gruppo tecnici con tutti i pulsanti
+    indirizzo_maps = ch[5].replace(' ', '+') + ",+Roma,+Italia"
+    link_maps = f"https://www.google.com/maps/search/?api=1&query={indirizzo_maps}"
+    flag = FLAGS.get(ch[3], "🌍")
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🕛 Entro le 12:00", callback_data=f"fascia_{cid}_entro12"),
+         InlineKeyboardButton("🕕 Entro le 18:00", callback_data=f"fascia_{cid}_entro18")],
+        [InlineKeyboardButton("📅 In giornata",    callback_data=f"fascia_{cid}_giornata"),
+         InlineKeyboardButton("📆 Entro domani",   callback_data=f"fascia_{cid}_domani")],
+        [InlineKeyboardButton("🗓 Da programmare", callback_data=f"programma_{cid}_start")],
+    ])
+    try:
+        await context.bot.send_message(
+            chat_id=TECNICI_GROUP_ID,
+            text=(
+                f"🔔 *CHIAMATA #{cid} — RIASSEGNAZIONE* {flag}\n{'─'*28}\n"
+                f"👤 *Cliente:* {ch[4]}\n"
+                f"📍 *Indirizzo:* {ch[5]}\n"
+                f"🗺 [Apri su Google Maps]({link_maps})\n"
+                f"📞 *Telefono:* {ch[6]}\n"
+                f"🔧 *Problema:* {ch[7]}\n"
+                f"{'─'*28}\n"
+                f"⚠️ _Chiamata rimessa in circolo dal back office_\n"
+                f"⏰ Primo tecnico disponibile: clicca quando intervieni:"
+            ),
+            reply_markup=keyboard,
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        log.error(f"Sblocco notifica gruppo: {e}")
+
+    # Avvisa il tecnico precedente
+    if tecnico_precedente_id:
+        try:
+            await context.bot.send_message(
+                chat_id=tecnico_precedente_id,
+                text=(
+                    f"ℹ️ *Chiamata #{cid} rimessa in circolo*\n\n"
+                    f"La chiamata del cliente *{ch[4]}* è stata rimessa nel circuito "
+                    f"dal back office e potrà essere assegnata ad un altro tecnico.\n\n"
+                    f"_Rotondi Group Roma_"
+                ),
+                parse_mode="Markdown"
+            )
+        except Exception as e:
+            log.error(f"Notifica tecnico precedente: {e}")
+
+    # Avvisa il cliente
+    lingua_cliente = ch[3]
+    try:
+        await context.bot.send_message(
+            chat_id=ch[1],
+            text=t(lingua_cliente, "riassegnazione"),
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        log.error(f"Notifica cliente sblocco: {e}")
 
 REG_TELEFONO = 20
 
@@ -1221,7 +1305,9 @@ def main():
     app.add_handler(CommandHandler("lista",    lista))
     app.add_handler(CommandHandler("aperte",   aperte))
     app.add_handler(CommandHandler("chiamate", mie_chiamate))
-    app.add_handler(CommandHandler("getid",    getid))
+    app.add_handler(CommandHandler("getid",      getid))
+    app.add_handler(CommandHandler("assegnate",  assegnate))
+    app.add_handler(CallbackQueryHandler(gestisci_sblocco, pattern=r"^sblocca_"))
 
     log.info("🤖 Bot avviato!")
     app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
