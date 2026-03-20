@@ -59,6 +59,11 @@ TESTI = {
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             "_Il pagamento va effettuato direttamente al tecnico "
             "al termine del servizio._\n\n"
+            "👨\u200d🔧 *I NOSTRI TECNICI*\n"
+            "I tecnici che operano con Rotondi Group sono *liberi professionisti "
+            "freelance indipendenti*, selezionati e incaricati dalla nostra azienda "
+            "per l'assistenza e la riparazione dei nostri macchinari. "
+            "Non sono dipendenti Rotondi Group.\n\n"
             "Accetti queste condizioni e vuoi procedere con la richiesta?"
         ),
         "condizioni_no": (
@@ -189,6 +194,8 @@ TESTI = {
             "› Work hours: *€ 40.00/h + VAT*\n\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             "_Payment is made directly to the technician at the end of service._\n\n"
+            "👨\u200d🔧 *OUR TECHNICIANS*\n"
+            "Our technicians are *independent freelance professionals*, selected and appointed by Rotondi Group. They are not company employees.\n\n"
             "Do you accept these conditions and wish to proceed?"
         ),
         "condizioni_no": (
@@ -308,6 +315,8 @@ TESTI = {
             "› কাজের সময়: *€ 40,00/ঘণ্টা + VAT*\n\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             "_পেমেন্ট সরাসরি টেকনিশিয়ানকে সার্ভিসের শেষে করতে হবে।_\n\n"
+            "👨\u200d🔧 *আমাদের টেকনিশিয়ান*\n"
+            "আমাদের টেকনিশিয়ানরা *স্বাধীন ফ্রিল্যান্স পেশাদার*, রোটোন্ডি গ্রুপ কর্তৃক নির্বাচিত। তারা কোম্পানির কর্মচারী নন।\n\n"
             "আপনি কি এই শর্তগুলি গ্রহণ করেন এবং এগিয়ে যেতে চান?"
         ),
         "condizioni_no": (
@@ -414,6 +423,8 @@ TESTI = {
             "› 工作时间: *€ 40,00/小时 + 增值税*\n\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             "_付款直接在服务结束时向技术人员支付。_\n\n"
+            "👨\u200d🔧 *我们的技术人员*\n"
+            "我们的技术人员是*独立自由职业者*，由罗通迪集团选派。他们不是公司雇员。\n\n"
             "您接受这些条件并希望继续吗？"
         ),
         "condizioni_no": (
@@ -520,7 +531,9 @@ TESTI = {
             "› ساعات العمل: *€ 40,00/ساعة + ضريبة*\n\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             "_يتم الدفع مباشرة للفني في نهاية الخدمة._\n\n"
-            "هل تقبل هذه الشروط وتريد المتابعة؟"
+            "👨\u200d🔧 *فنيونا*\n"
+            "فنيونا *محترفون مستقلون فريلانس*، تم اختيارهم من قِبل روتوندي جروب. ليسوا موظفين في الشركة.\n\n"
+            "هل تقبل هذه الشروط وتريد المتابعة?"
         ),
         "condizioni_no": (
             "❌ *لم تُقبل الخدمة*\n\n"
