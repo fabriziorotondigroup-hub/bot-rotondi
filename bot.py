@@ -28,12 +28,45 @@ log = logging.getLogger(__name__)
 
 DB_PATH = "assistenza.db"
 
-(SCEGLI_LINGUA, NOME, INDIRIZZO, TELEFONO,
+(CONDIZIONI, SCEGLI_LINGUA, NOME, INDIRIZZO, TELEFONO,
  FOTO_TARGHETTA, MARCA, MODELLO, SERIALE,
- PROBLEMA, FOTO_MACCHINA, CONFERMA) = range(11)
+ PROBLEMA, FOTO_MACCHINA, CONFERMA) = range(12)
 
 TESTI = {
     "it": {
+                "condizioni": (
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "🔧  *ROTONDI GROUP SRL*\n"
+            "     Filiale di Roma\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ *INFORMATIVA SUL SERVIZIO*\n\n"
+            "L'assistenza tecnica Rotondi Group è un *servizio a pagamento*, "
+            "anche nel caso in cui l'intervento riguardi un prodotto *in garanzia*.\n\n"
+            "✅ *Cosa riconosciamo in garanzia:*\n"
+            "› Le *parti di ricambio difettose* vengono sostituite senza costo\n\n"
+            "💶 *Cosa è sempre a carico del cliente:*\n"
+            "› Manodopera\n"
+            "› Spostamento del tecnico\n"
+            "› Costo della chiamata\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "📍 *TARIFFE ZONA DI ROMA*\n"
+            "› Uscita + 1 ora di lavoro: *€ 80,00 + IVA*\n"
+            "› Ore successive: *€ 40,00/ora + IVA*\n\n"
+            "🗺 *FUORI ROMA* _(Latina, Frosinone, Rieti,\nViterbo e resto d\'Italia)_\n"
+            "› Km trasferta: *€ 0,70/km + IVA* _(A/R)_\n"
+            "› Ore di viaggio: *€ 32,00/ora + IVA* _(A/R)_\n"
+            "› Ore di lavoro: *€ 40,00/ora + IVA*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "_Il pagamento va effettuato direttamente al tecnico "
+            "al termine del servizio._\n\n"
+            "Accetti queste condizioni e vuoi procedere con la richiesta?"
+        ),
+        "condizioni_no": (
+            "❌ *Servizio non accettato*\n\n"
+            "Ha scelto di non procedere con la richiesta di assistenza.\n\n"
+            "Se cambia idea può riaprire la richiesta in qualsiasi momento scrivendo /start\n\n"
+            "_Rotondi Group Roma_"
+        ),
         "nome":           "┌─────────────────────\n│ 👤  *DATI PERSONALI*\n└─────────────────────\n\nCome ti chiami?\n_Scrivi nome e cognome_",
         "indirizzo":      "📍 *Indirizzo di intervento*\n\n_Via, numero civico e città_",
         "telefono":       "📞 *Numero di telefono*\n\n_Ti contatteremo su questo numero_",
@@ -132,6 +165,38 @@ TESTI = {
         "annulla": "❌ Operazione annullata.\n\nScrivi /start per ricominciare.",
     },
     "en": {
+                "condizioni": (
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "🔧  *ROTONDI GROUP SRL*\n"
+            "     Rome Branch\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ *SERVICE INFORMATION*\n\n"
+            "Rotondi Group technical assistance is a *paid service*, "
+            "even when the intervention concerns a product *under warranty*.\n\n"
+            "✅ *What we cover under warranty:*\n"
+            "› *Defective spare parts* are replaced at no cost\n\n"
+            "💶 *What is always charged to the customer:*\n"
+            "› Labour\n"
+            "› Technician travel\n"
+            "› Call-out fee\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "📍 *ROME AREA RATES*\n"
+            "› Call-out + 1 hour work: *€ 80.00 + VAT*\n"
+            "› Additional hours: *€ 40.00/h + VAT*\n\n"
+            "🗺 *OUTSIDE ROME*\n"
+            "› Travel km: *€ 0.70/km + VAT* _(return)_\n"
+            "› Travel hours: *€ 32.00/h + VAT* _(return)_\n"
+            "› Work hours: *€ 40.00/h + VAT*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "_Payment is made directly to the technician at the end of service._\n\n"
+            "Do you accept these conditions and wish to proceed?"
+        ),
+        "condizioni_no": (
+            "❌ *Service not accepted*\n\n"
+            "You have chosen not to proceed with the assistance request.\n\n"
+            "If you change your mind, you can reopen the request at any time by writing /start\n\n"
+            "_Rotondi Group Roma_"
+        ),
         "nome":           "┌─────────────────────\n│ 👤  *PERSONAL DETAILS*\n└─────────────────────\n\nWhat is your name?\n_Write your full name_",
         "indirizzo":      "📍 *Intervention address*\n\n_Street, number and city_",
         "telefono":       "📞 *Phone number*\n\n_We will contact you on this number_",
@@ -219,6 +284,38 @@ TESTI = {
         "annulla": "❌ Cancelled.\n\nWrite /start to begin again.",
     },
     "bn": {
+                "condizioni": (
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "🔧  *ROTONDI GROUP SRL*\n"
+            "     রোমা শাখা\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ *সেবার তথ্য*\n\n"
+            "রোটোন্ডি গ্রুপের প্রযুক্তিগত সহায়তা একটি *পেইড সার্ভিস*, "
+            "এমনকি পণ্যটি *ওয়ারেন্টিতে* থাকলেও।\n\n"
+            "✅ *ওয়ারেন্টিতে যা কভার করা হয়:*\n"
+            "› *ত্রুটিপূর্ণ খুচরা যন্ত্রাংশ* বিনামূল্যে প্রতিস্থাপন\n\n"
+            "💶 *গ্রাহককে সবসময় যা দিতে হবে:*\n"
+            "› শ্রম খরচ\n"
+            "› টেকনিশিয়ানের যাতায়াত\n"
+            "› কল-আউট ফি\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "📍 *রোমা এলাকার তারিফ*\n"
+            "› আসা + ১ ঘণ্টা কাজ: *€ 80,00 + VAT*\n"
+            "› অতিরিক্ত ঘণ্টা: *€ 40,00/ঘণ্টা + VAT*\n\n"
+            "🗺 *রোমার বাইরে*\n"
+            "› যাতায়াত: *€ 0,70/কিমি + VAT* _(A/R)_\n"
+            "› ভ্রমণ সময়: *€ 32,00/ঘণ্টা + VAT*\n"
+            "› কাজের সময়: *€ 40,00/ঘণ্টা + VAT*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "_পেমেন্ট সরাসরি টেকনিশিয়ানকে সার্ভিসের শেষে করতে হবে।_\n\n"
+            "আপনি কি এই শর্তগুলি গ্রহণ করেন এবং এগিয়ে যেতে চান?"
+        ),
+        "condizioni_no": (
+            "❌ *সেবা গ্রহণ করা হয়নি*\n\n"
+            "আপনি সহায়তার অনুরোধ না করার সিদ্ধান্ত নিয়েছেন।\n\n"
+            "মত পরিবর্তন হলে /start লিখে যেকোনো সময় আবার শুরু করুন।\n\n"
+            "_রোটোন্ডি গ্রুপ রোমা_"
+        ),
         "nome":           "┌─────────────────────\n│ 👤  *ব্যক্তিগত তথ্য*\n└─────────────────────\n\nআপনার নাম কি?\n_পুরো নাম লিখুন_",
         "indirizzo":      "📍 *হস্তক্ষেপের ঠিকানা*\n\n_রাস্তা, নম্বর এবং শহর_",
         "telefono":       "📞 *ফোন নম্বর*\n\n_এই নম্বরে আপনার সাথে যোগাযোগ করা হবে_",
@@ -293,6 +390,38 @@ TESTI = {
         "annulla": "❌ বাতিল হয়েছে।\n\nআবার শুরু করতে /start লিখুন।",
     },
     "zh": {
+                "condizioni": (
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "🔧  *ROTONDI GROUP SRL*\n"
+            "     罗马分公司\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ *服务说明*\n\n"
+            "罗通迪集团技术援助是*付费服务*，"
+            "即使产品*在保修期内*也是如此。\n\n"
+            "✅ *保修内容:*\n"
+            "› *有缺陷的备件*免费更换\n\n"
+            "💶 *始终由客户承担:*\n"
+            "› 人工费\n"
+            "› 技术人员差旅费\n"
+            "› 上门费\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "📍 *罗马地区费率*\n"
+            "› 上门费 + 1小时工作: *€ 80,00 + 增值税*\n"
+            "› 额外每小时: *€ 40,00 + 增值税*\n\n"
+            "🗺 *罗马以外地区*\n"
+            "› 差旅: *€ 0,70/公里 + 增值税* _(往返)_\n"
+            "› 路途时间: *€ 32,00/小时 + 增值税*\n"
+            "› 工作时间: *€ 40,00/小时 + 增值税*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "_付款直接在服务结束时向技术人员支付。_\n\n"
+            "您接受这些条件并希望继续吗？"
+        ),
+        "condizioni_no": (
+            "❌ *未接受服务*\n\n"
+            "您选择不继续提交援助请求。\n\n"
+            "如果您改变主意，可以随时写 /start 重新开始。\n\n"
+            "_罗通迪集团罗马_"
+        ),
         "nome":           "┌─────────────────────\n│ 👤  *个人信息*\n└─────────────────────\n\n您叫什么名字？\n_请写全名_",
         "indirizzo":      "📍 *干预地址*\n\n_街道、门牌号和城市_",
         "telefono":       "📞 *电话号码*\n\n_我们将通过此号码联系您_",
@@ -367,6 +496,38 @@ TESTI = {
         "annulla": "❌ 已取消。\n\n写 /start 重新开始。",
     },
     "ar": {
+                "condizioni": (
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "🔧  *ROTONDI GROUP SRL*\n"
+            "     فرع روما\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "⚠️ *معلومات الخدمة*\n\n"
+            "المساعدة الفنية لروتوندي جروب هي *خدمة مدفوعة*، "
+            "حتى لو كان المنتج *تحت الضمان*.\n\n"
+            "✅ *ما يشمله الضمان:*\n"
+            "› استبدال *قطع الغيار المعيبة* مجاناً\n\n"
+            "💶 *ما يتحمله العميل دائماً:*\n"
+            "› أجرة العمل\n"
+            "› تنقل الفني\n"
+            "› رسوم الزيارة\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "📍 *تعريفات منطقة روما*\n"
+            "› زيارة + ساعة عمل: *€ 80,00 + ضريبة*\n"
+            "› ساعات إضافية: *€ 40,00/ساعة + ضريبة*\n\n"
+            "🗺 *خارج روما*\n"
+            "› الكيلومترات: *€ 0,70/كم + ضريبة* _(ذهاباً وإياباً)_\n"
+            "› ساعات السفر: *€ 32,00/ساعة + ضريبة*\n"
+            "› ساعات العمل: *€ 40,00/ساعة + ضريبة*\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            "_يتم الدفع مباشرة للفني في نهاية الخدمة._\n\n"
+            "هل تقبل هذه الشروط وتريد المتابعة؟"
+        ),
+        "condizioni_no": (
+            "❌ *لم تُقبل الخدمة*\n\n"
+            "اخترت عدم المتابعة في طلب المساعدة.\n\n"
+            "إذا غيرت رأيك، يمكنك إعادة الطلب في أي وقت بكتابة /start\n\n"
+            "_روتوندي جروب روما_"
+        ),
         "nome":           "┌─────────────────────\n│ 👤  *البيانات الشخصية*\n└─────────────────────\n\nما اسمك؟\n_اكتب الاسم الكامل_",
         "indirizzo":      "📍 *عنوان التدخل*\n\n_الشارع والرقم والمدينة_",
         "telefono":       "📞 *رقم الهاتف*\n\n_سنتواصل معك على هذا الرقم_",
@@ -619,16 +780,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return SCEGLI_LINGUA
 
-async def scegli_lingua(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    lingua = query.data.replace("lang_", "")
-    context.user_data["lingua"] = lingua
-    await query.edit_message_text(
-        f"{FLAGS[lingua]} *{NOME_AZIENDA}*\n\n" + t(lingua, "nome"),
-        parse_mode="Markdown"
-    )
-    return NOME
+
 
 async def raccogli_nome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lingua = context.user_data.get("lingua", "it")
@@ -1519,7 +1671,8 @@ def main():
     conv = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            SCEGLI_LINGUA:  [CallbackQueryHandler(scegli_lingua, pattern="^lang_")],
+            SCEGLI_LINGUA:  [CallbackQueryHandler(scegli_lingua_condizioni, pattern="^lang_")],
+            CONDIZIONI:     [CallbackQueryHandler(gestisci_condizioni, pattern="^cond_")],
             NOME:           [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_nome)],
             INDIRIZZO:      [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_indirizzo)],
             TELEFONO:       [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_telefono)],
