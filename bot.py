@@ -782,6 +782,39 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+async def scegli_lingua_condizioni(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    lingua = query.data.replace("lang_", "")
+    context.user_data["lingua"] = lingua
+    kb = InlineKeyboardMarkup([[
+        InlineKeyboardButton("✅  Accetto", callback_data="cond_si"),
+        InlineKeyboardButton("❌  Rifiuto", callback_data="cond_no"),
+    ]])
+    await query.edit_message_text(
+        t(lingua, "condizioni"),
+        reply_markup=kb,
+        parse_mode="Markdown"
+    )
+    return CONDIZIONI
+
+async def gestisci_condizioni(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    lingua = context.user_data.get("lingua", "it")
+    if query.data == "cond_no":
+        await query.edit_message_text(
+            t(lingua, "condizioni_no"),
+            parse_mode="Markdown"
+        )
+        return ConversationHandler.END
+    # Accetta → vai alla raccolta dati
+    await query.edit_message_text(
+        f"{FLAGS[lingua]} *{NOME_AZIENDA}*\n\n" + t(lingua, "nome"),
+        parse_mode="Markdown"
+    )
+    return NOME
+
 async def raccogli_nome(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lingua = context.user_data.get("lingua", "it")
     context.user_data["nome"] = context.user_data["nome_orig"] = update.message.text.strip()
