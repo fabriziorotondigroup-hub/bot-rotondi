@@ -1,2 +1,0 @@
-python-telegram-bot[job-queue]==20.7
-deep-translator==1.11.4
