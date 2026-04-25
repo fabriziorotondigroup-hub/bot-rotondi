@@ -751,4 +751,402 @@ async def gestisci_wfascia(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def genera_keyboard_date(cid):
     oggi=datetime.now(); bottoni=[]; riga=[]
     for i in range(7):
-        g=oggi+timedelta(
+        g=oggi+timedelta(days=i)
+        riga.append(InlineKeyboardButton(g.strftime("%a %d/%m"),
+            callback_data=f"pdata_{cid}_{g.strftime('%d-%m-%Y')}"))
+        if len(riga)==2: bottoni.append(riga); riga=[]
+    if riga: bottoni.append(riga)
+    bottoni.append([InlineKeyboardButton("❌ Annulla", callback_data=f"pdata_{cid}_annulla")])
+    return InlineKeyboardMarkup(bottoni)
+
+def genera_keyboard_ore(cid, data_str):
+    ore=["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"]
+    bottoni=[]; riga=[]
+    for ora in ore:
+        riga.append(InlineKeyboardButton(ora,
+            callback_data=f"pora_{cid}_{data_str}_{ora.replace(':','')}"))
+        if len(riga)==4: bottoni.append(riga); riga=[]
+    if riga: bottoni.append(riga)
+    bottoni.append([InlineKeyboardButton("⬅️ Torna alle date", callback_data=f"programma_{cid}_start")])
+    return InlineKeyboardMarkup(bottoni)
+
+def _keyboard_fascia(cid):
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🕛 Entro le 12:00", callback_data=f"fascia_{cid}_entro12"),
+         InlineKeyboardButton("🕕 Entro le 18:00", callback_data=f"fascia_{cid}_entro18")],
+        [InlineKeyboardButton("📅 In giornata",    callback_data=f"fascia_{cid}_giornata"),
+         InlineKeyboardButton("📆 Entro domani",   callback_data=f"fascia_{cid}_domani")],
+        [InlineKeyboardButton("🗓 Da programmare", callback_data=f"programma_{cid}_start")],
+    ])
+
+async def gestisci_programma(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query; await query.answer()
+    cid = int(query.data.split("_")[1]); ch = get_chiamata(cid)
+    if not ch: return
+    if ch["stato"] == "assegnata": await query.answer("⚠️ Già assegnata!", show_alert=True); return
+    if ch["stato"] == "in_attesa_conferma": await query.answer("⚠️ In attesa conferma!", show_alert=True); return
+    await query.edit_message_text(
+        f"🗓 *Da programmare #{cid}*\n\n👤 {ch['nome_cliente']}\nScegli la *data*:",
+        reply_markup=genera_keyboard_date(cid), parse_mode="Markdown")
+
+async def gestisci_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query; await query.answer()
+    parti=query.data.split("_"); cid=int(parti[1]); data_str=parti[2]
+    if data_str == "annulla":
+        ch=get_chiamata(cid)
+        if not ch: return
+        link_maps="https://www.google.com/maps/search/?api=1&query="+ch["indirizzo"].replace(" ","+")
+        await query.edit_message_text(
+            f"🔔 *CHIAMATA #{cid}*\n👤 {ch['nome_cliente']}\n📍 {ch['indirizzo']}\n"
+            f"🗺 [Google Maps]({link_maps})\n📞 {ch['telefono']}\n🔧 {ch['problema_it']}\n\n⏰ Primo tecnico:",
+            reply_markup=_keyboard_fascia(cid), parse_mode="Markdown"); return
+    ch=get_chiamata(cid)
+    if not ch: return
+    await query.edit_message_text(
+        f"🗓 *Da programmare #{cid}*\n👤 {ch['nome_cliente']}\n📅 Data: {data_str.replace('-','/')}\n\nScegli l'*ora*:",
+        reply_markup=genera_keyboard_ore(cid, data_str), parse_mode="Markdown")
+
+async def gestisci_ora(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query; await query.answer()
+    parti=query.data.split("_"); cid=int(parti[1]); data_str=parti[2]; ora_str=parti[3]
+    data_ora=f"{data_str.replace('-','/')} alle {ora_str[:2]}:{ora_str[2:]}"
+    ch=get_chiamata(cid)
+    if not ch: return
+    if ch["stato"] in ("assegnata","in_attesa_conferma"):
+        await query.answer("⚠️ Non disponibile!", show_alert=True); return
+    tid=query.from_user.id
+    t_nome=f"{query.from_user.first_name or ''} {query.from_user.last_name or ''}".strip()
+    tdb=get_tecnico(tid); nome=tdb["nome"] if tdb else t_nome
+    if not tdb: registra_tecnico(tid, t_nome)
+    set_proposta(cid, tid, nome, data_ora)
+    await query.edit_message_text(
+        f"⏳ *CHIAMATA #{cid} — IN ATTESA CONFERMA*\n"
+        f"👤 {ch['nome_cliente']}\n👨‍🔧 {nome}\n📅 Proposta: {data_ora}\n\n_In attesa..._",
+        parse_mode="Markdown")
+    kb_c = InlineKeyboardMarkup([[
+        InlineKeyboardButton("✅ Accetto", callback_data=f"cprop_{cid}_si"),
+        InlineKeyboardButton("❌ Rifiuto", callback_data=f"cprop_{cid}_no"),
+    ]])
+    try:
+        await context.bot.send_message(chat_id=ch["telegram_id"],
+            text=t(ch["lingua"],"proposta",tecnico=nome,data_ora=data_ora),
+            reply_markup=kb_c, parse_mode="Markdown")
+    except Exception as e: log.error(f"Proposta cliente: {e}")
+    for bo_id in BACKOFFICE_IDS:
+        try: await context.bot.send_message(chat_id=bo_id,
+            text=f"⏳ *Chiamata #{cid} in attesa*\n👤 {ch['nome_cliente']}\n👨‍🔧 {nome}\n📅 {data_ora}",
+            parse_mode="Markdown")
+        except: pass
+
+async def gestisci_conferma_proposta(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query; await query.answer()
+    parti=query.data.split("_"); cid=int(parti[1]); risposta=parti[2]
+    ch=get_chiamata(cid)
+    if not ch: await query.edit_message_text("⚠️ Chiamata non trovata."); return
+    if ch["stato"] != "in_attesa_conferma": await query.edit_message_text("ℹ️ Proposta non più valida."); return
+    lingua=ch["lingua"]; data_ora=ch.get("data_ora_proposta") or "—"
+    nome_tecnico=ch.get("tecnico_nome") or "—"; tecnico_id=ch.get("tecnico_proposta_id")
+    if risposta == "si":
+        assegna(cid, tecnico_id, nome_tecnico, data_ora)
+        await query.edit_message_text(
+            t(lingua,"proposta_accettata",tecnico=nome_tecnico,data_ora=data_ora), parse_mode="Markdown")
+        try: await context.bot.send_message(chat_id=TECNICI_GROUP_ID,
+            text=f"✅ *CHIAMATA #{cid} CONFERMATA*\n👤 {ch['nome_cliente']}\n👨‍🔧 {nome_tecnico}\n📅 {data_ora}",
+            parse_mode="Markdown")
+        except: pass
+        for bo_id in BACKOFFICE_IDS:
+            try: await context.bot.send_message(chat_id=bo_id,
+                text=f"✅ *Chiamata #{cid} confermata*\n👤 {ch['nome_cliente']}\n👨‍🔧 {nome_tecnico}\n📅 {data_ora}",
+                parse_mode="Markdown")
+            except: pass
+    else:
+        reset_proposta(cid)
+        await query.edit_message_text(t(lingua,"proposta_rifiutata"), parse_mode="Markdown")
+        try: await context.bot.send_message(chat_id=TECNICI_GROUP_ID,
+            text=f"❌ *CHIAMATA #{cid} — PROPOSTA RIFIUTATA*\n👤 {ch['nome_cliente']}\nTornata disponibile!",
+            reply_markup=_keyboard_fascia(cid), parse_mode="Markdown")
+        except: pass
+        for bo_id in BACKOFFICE_IDS:
+            try: await context.bot.send_message(chat_id=bo_id,
+                text=f"❌ *Chiamata #{cid} proposta rifiutata*\n👤 {ch['nome_cliente']}",
+                parse_mode="Markdown")
+            except: pass
+
+
+# ── BACK OFFICE ───────────────────────────────────────────────────────────────
+async def lista(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in BACKOFFICE_IDS:
+        await update.message.reply_text("⛔ Non autorizzato."); return
+    rows = lista_chiamate_db()
+    if not rows: await update.message.reply_text("📋 Nessuna chiamata."); return
+    for r in rows:
+        emoji = "🟡" if r[3]=="aperta" else ("⏳" if r[3]=="in_attesa_conferma" else "✅")
+        flag  = FLAGS.get(r[7],"🌍")
+        testo = f"{emoji} *#{r[0]}* {flag} — {r[1]}\n📍 {r[2]}\n"
+        if r[3] in ("assegnata","in_attesa_conferma"): testo += f"👨‍🔧 {r[4]} | {r[5]}\n"
+        testo += f"🕐 {r[6]}"
+        if r[3] in ("assegnata","in_attesa_conferma"):
+            await update.message.reply_text(testo, parse_mode="Markdown",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔓 Sblocca", callback_data=f"sblocca_{r[0]}")]]))
+        else: await update.message.reply_text(testo, parse_mode="Markdown")
+
+async def aperte(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in BACKOFFICE_IDS:
+        await update.message.reply_text("⛔ Non autorizzato."); return
+    with sqlite3.connect(DB_PATH) as conn:
+        rows = conn.execute("""SELECT id,nome_cliente,indirizzo,data_apertura,lingua,stato,tecnico_nome
+            FROM chiamate WHERE stato IN ('aperta','in_attesa_conferma') ORDER BY id DESC""").fetchall()
+    if not rows: await update.message.reply_text("✅ Nessuna chiamata aperta!"); return
+    await update.message.reply_text(f"🟡 *Chiamate aperte: {len(rows)}*", parse_mode="Markdown")
+    for r in rows:
+        emoji = "⏳" if r[5]=="in_attesa_conferma" else "🟡"
+        testo = f"{emoji} *#{r[0]}* {FLAGS.get(r[4],'🌍')} — {r[1]}\n📍 {r[2]}\n🕐 {r[3]}"
+        if r[5]=="in_attesa_conferma" and r[6]: testo += f"\n⏳ In attesa da: {r[6]}"
+        await update.message.reply_text(testo, parse_mode="Markdown")
+
+async def assegnate(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in BACKOFFICE_IDS:
+        await update.message.reply_text("⛔ Non autorizzato."); return
+    with sqlite3.connect(DB_PATH) as conn:
+        rows = conn.execute("""SELECT id,nome_cliente,indirizzo,data_apertura,lingua,stato,
+            tecnico_nome,fascia_oraria,data_ora_proposta
+            FROM chiamate WHERE stato IN ('assegnata','in_attesa_conferma') ORDER BY id DESC LIMIT 20""").fetchall()
+    if not rows: await update.message.reply_text("📋 Nessuna!"); return
+    await update.message.reply_text(f"✅ *Assegnate: {len(rows)}*", parse_mode="Markdown")
+    for r in rows:
+        emoji = "⏳" if r[5]=="in_attesa_conferma" else "✅"
+        orario = r[8] if r[5]=="in_attesa_conferma" else r[7]
+        testo = (f"{emoji} *#{r[0]}* {FLAGS.get(r[4],'🌍')} — {r[1]}\n"
+                 f"📍 {r[2]}\n👨‍🔧 {r[6] or '—'}\n⏰ {orario or '—'}\n🕐 {r[3]}")
+        await update.message.reply_text(testo, parse_mode="Markdown",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔓 Sblocca e rimetti in circolo",
+                callback_data=f"sblocca_{r[0]}")]]))
+
+async def gestisci_sblocco(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query; await query.answer()
+    if query.from_user.id not in BACKOFFICE_IDS:
+        await query.answer("⛔ Non autorizzato.", show_alert=True); return
+    cid = int(query.data.split("_")[1]); ch = get_chiamata(cid)
+    if not ch: await query.answer("⚠️ Non trovata.", show_alert=True); return
+    if ch["stato"] == "aperta": await query.answer("ℹ️ Già libera.", show_alert=True); return
+    tecnico_prec_id = ch.get("tecnico_id")
+    sblocca_chiamata_db(cid)
+    await query.edit_message_text(
+        f"🔓 *CHIAMATA #{cid} — SBLOCCATA*\n👤 {ch['nome_cliente']}\n📍 {ch['indirizzo']}\n_Rimessa in circolo_",
+        parse_mode="Markdown")
+    link_maps="https://www.google.com/maps/search/?api=1&query="+ch["indirizzo"].replace(" ","+")
+    flag=FLAGS.get(ch["lingua"],"🌍")
+    try: await context.bot.send_message(chat_id=TECNICI_GROUP_ID,
+        text=(f"🔔 *RIASSEGNAZIONE #{cid}* {flag}\n👤 {ch['nome_cliente']}\n📍 {ch['indirizzo']}\n"
+              f"🗺 [Google Maps]({link_maps})\n📞 {ch['telefono']}\n🔧 {ch['problema_it']}\n\n"
+              f"⚠️ _Rimessa in circolo dal back office_\n⏰ Clicca per assegnarti:"),
+        reply_markup=_keyboard_fascia(cid), parse_mode="Markdown")
+    except Exception as e: log.error(f"Sblocco: {e}")
+    if tecnico_prec_id:
+        try: await context.bot.send_message(chat_id=tecnico_prec_id,
+            text=f"ℹ️ *Chiamata #{cid} rimessa in circolo*\n\nLa chiamata di {ch['nome_cliente']} è stata rimessa.\n\n_Rotondi Group Roma_",
+            parse_mode="Markdown")
+        except: pass
+    try: await context.bot.send_message(chat_id=ch["telegram_id"],
+        text=t(ch["lingua"],"riassegnazione"), parse_mode="Markdown")
+    except Exception as e: log.error(f"Notifica cliente: {e}")
+
+async def storico(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in BACKOFFICE_IDS:
+        await update.message.reply_text("⛔ Non autorizzato."); return
+    now=datetime.now()
+    mesi=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"]
+    anno=now.year; bottoni=[]; riga=[]
+    for i,m in enumerate(mesi,1):
+        riga.append(InlineKeyboardButton(f"{m} {anno}", callback_data=f"storico_{i:02d}_{anno}"))
+        if len(riga)==3: bottoni.append(riga); riga=[]
+    if riga: bottoni.append(riga)
+    bottoni.append([InlineKeyboardButton(f"📅 Anno {anno-1}", callback_data=f"storico_00_{anno-1}")])
+    await update.message.reply_text("📊 *Storico chiamate*\n\nScegli il mese:",
+        reply_markup=InlineKeyboardMarkup(bottoni), parse_mode="Markdown")
+
+async def gestisci_storico(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query=update.callback_query; await query.answer()
+    if query.from_user.id not in BACKOFFICE_IDS: return
+    parti=query.data.split("_")
+    await _invia_storico(query.message, context, int(parti[1]), int(parti[2]))
+
+async def _invia_storico(msg, context, mese, anno):
+    with sqlite3.connect(DB_PATH) as conn:
+        if mese==0:
+            rows=conn.execute("""SELECT id,nome_cliente,indirizzo,stato,tecnico_nome,fascia_oraria,
+                data_apertura,lingua,marca,modello,problema_it
+                FROM chiamate WHERE data_apertura LIKE ? ORDER BY id DESC""", (f"%/{anno}%",)).fetchall()
+            periodo=f"Anno {anno}"
+        else:
+            rows=conn.execute("""SELECT id,nome_cliente,indirizzo,stato,tecnico_nome,fascia_oraria,
+                data_apertura,lingua,marca,modello,problema_it
+                FROM chiamate WHERE data_apertura LIKE ? ORDER BY id DESC""", (f"%/{mese:02d}/{anno}%",)).fetchall()
+            mesi_it=["","Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno",
+                     "Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"]
+            periodo=f"{mesi_it[mese]} {anno}"
+    if not rows:
+        await msg.reply_text(f"📊 *{periodo}*\n\n_Nessuna chiamata trovata._", parse_mode="Markdown"); return
+    totale=len(rows); ass=sum(1 for r in rows if r[3]=="assegnata")
+    ape=sum(1 for r in rows if r[3]=="aperta"); att=sum(1 for r in rows if r[3]=="in_attesa_conferma")
+    tc={}
+    for r in rows:
+        if r[4]: tc[r[4]]=tc.get(r[4],0)+1
+    ries=(f"📊 *STORICO — {periodo}*\n{'━'*28}\n\n"
+          f"📈 Totale: *{totale}* | ✅ {ass} | 🟡 {ape} | ⏳ {att}\n\n")
+    if tc:
+        ries+="*Per tecnico:*\n"
+        for nome,count in sorted(tc.items(),key=lambda x:-x[1]):
+            ries+=f"  👨‍🔧 {nome}: {count}\n"
+    await msg.reply_text(ries, parse_mode="Markdown")
+    for i in range(0,len(rows),10):
+        testo=""
+        for r in rows[i:i+10]:
+            emoji="✅" if r[3]=="assegnata" else ("⏳" if r[3]=="in_attesa_conferma" else "🟡")
+            testo+=(f"{emoji} *#{r[0]}* {FLAGS.get(r[7],'🌍')} — {r[1]}\n"
+                    f"📍 {r[2]}\n🕐 {r[6]}")
+            if r[4]: testo+=f"\n👨‍🔧 {r[4]}"+(f" | {r[5]}" if r[5] else "")
+            testo+=f"\n🔧 _{(r[10] or '')[:60]}_\n\n"
+        await msg.reply_text(testo, parse_mode="Markdown")
+
+async def statistiche(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in BACKOFFICE_IDS:
+        await update.message.reply_text("⛔ Non autorizzato."); return
+    now=datetime.now()
+    mese_like="%/"+now.strftime('%m/%Y')+"%"; anno_like=f"%/{now.year}%"
+    with sqlite3.connect(DB_PATH) as conn:
+        tot=conn.execute("SELECT COUNT(*) FROM chiamate").fetchone()[0]
+        ass=conn.execute("SELECT COUNT(*) FROM chiamate WHERE stato='assegnata'").fetchone()[0]
+        ape=conn.execute("SELECT COUNT(*) FROM chiamate WHERE stato='aperta'").fetchone()[0]
+        att=conn.execute("SELECT COUNT(*) FROM chiamate WHERE stato='in_attesa_conferma'").fetchone()[0]
+        m_tot=conn.execute("SELECT COUNT(*) FROM chiamate WHERE data_apertura LIKE ?",(mese_like,)).fetchone()[0]
+        m_ass=conn.execute("SELECT COUNT(*) FROM chiamate WHERE stato='assegnata' AND data_apertura LIKE ?",(mese_like,)).fetchone()[0]
+        a_tot=conn.execute("SELECT COUNT(*) FROM chiamate WHERE data_apertura LIKE ?",(anno_like,)).fetchone()[0]
+        tc_rows=conn.execute("""SELECT tecnico_nome,COUNT(*) FROM chiamate
+            WHERE tecnico_nome IS NOT NULL AND tecnico_nome!=''
+            GROUP BY tecnico_nome ORDER BY COUNT(*) DESC""").fetchall()
+        lg_rows=conn.execute("SELECT lingua,COUNT(*) FROM chiamate GROUP BY lingua ORDER BY COUNT(*) DESC").fetchall()
+        ultima=conn.execute("SELECT nome_cliente,data_apertura FROM chiamate ORDER BY id DESC LIMIT 1").fetchone()
+    msg1=(f"📊 *STATISTICHE*\n{'━'*30}\n\n"
+          f"📅 *{now.strftime('%B %Y')}:* {m_tot} ricevute, {m_ass} assegnate\n"
+          f"📆 *Anno {now.year}:* {a_tot} chiamate\n\n"
+          f"🗂 *Storico:* {tot} totali | ✅{ass} | 🟡{ape} | ⏳{att}")
+    if ultima: msg1+=f"\n🕐 Ultima: {ultima[0]} — {ultima[1]}"
+    await update.message.reply_text(msg1, parse_mode="Markdown")
+    if tc_rows:
+        medaglie=["🥇","🥈","🥉"]
+        msg2=f"👨‍🔧 *CLASSIFICA TECNICI*\n{'━'*30}\n\n"
+        for i,(nome,cnt) in enumerate(tc_rows):
+            msg2+=f"{medaglie[i] if i<3 else str(i+1)+'.'} *{nome}*: *{cnt}* chiamate\n"
+        await update.message.reply_text(msg2, parse_mode="Markdown")
+    if lg_rows:
+        LINGUE_NOMI={"it":"🇮🇹 IT","en":"🇬🇧 EN","bn":"🇧🇩 BD","zh":"🇨🇳 CN","ar":"🇸🇦 SA"}
+        tot_ling=sum(r[1] for r in lg_rows)
+        msg3=f"🌍 *LINGUE CLIENTI*\n{'━'*30}\n\n"
+        for lingua,cnt in lg_rows:
+            perc=int(cnt/tot_ling*100) if tot_ling else 0
+            msg3+=f"{LINGUE_NOMI.get(lingua,lingua)}: *{cnt}* ({perc}%)\n"
+        await update.message.reply_text(msg3, parse_mode="Markdown")
+
+async def registrami(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user=update.effective_user; nome=f"{user.first_name or ''} {user.last_name or ''}".strip()
+    context.user_data["reg_nome"]=nome
+    await update.message.reply_text(f"👨‍🔧 Ciao *{nome}*!\n\nScrivi il tuo *numero di telefono*:", parse_mode="Markdown")
+    return REG_TELEFONO
+
+async def registrami_telefono(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user=update.effective_user; nome=context.user_data.get("reg_nome",user.first_name)
+    telefono=update.message.text.strip(); registra_tecnico(user.id,nome,telefono)
+    await update.message.reply_text(
+        f"✅ *Registrazione completata!*\n\n👤 *{nome}*\n📞 *{telefono}*\n\nUsa /chiamate per le tue chiamate.",
+        parse_mode="Markdown")
+    return ConversationHandler.END
+
+async def mie_chiamate(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    tid=update.effective_user.id
+    with sqlite3.connect(DB_PATH) as conn:
+        rows=conn.execute("""SELECT id,nome_cliente,indirizzo,problema_it,fascia_oraria,
+            data_assegnazione,stato,data_ora_proposta
+            FROM chiamate WHERE tecnico_id=? OR tecnico_proposta_id=?
+            ORDER BY id DESC LIMIT 10""", (tid,tid)).fetchall()
+    if not rows: await update.message.reply_text("📋 Nessuna chiamata assegnata."); return
+    testo="📋 *Le tue ultime chiamate:*\n\n"
+    for r in rows:
+        if r[6]=="in_attesa_conferma": testo+=f"⏳ *#{r[0]}* — {r[1]}\n📍 {r[2]}\n📅 Proposta: {r[7]}\n\n"
+        else: testo+=f"✅ *#{r[0]}* — {r[1]}\n📍 {r[2]}\n⏰ {r[4]}\n\n"
+    await update.message.reply_text(testo, parse_mode="Markdown")
+
+async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat=update.effective_chat; user=update.effective_user
+    await update.message.reply_text(f"ID Chat: {chat.id}\nID User: {user.id}\nTipo: {chat.type}")
+
+
+# ── HEALTH SERVER ─────────────────────────────────────────────────────────────
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200); self.end_headers(); self.wfile.write(b'OK')
+    def log_message(self, format, *args): pass
+
+def avvia_http():
+    HTTPServer(('0.0.0.0', int(os.environ.get('PORT',8080))), HealthHandler).serve_forever()
+
+
+# ── MAIN ──────────────────────────────────────────────────────────────────────
+def main():
+    init_db()
+    app = Application.builder().token(BOT_TOKEN).build()
+
+    conv = ConversationHandler(
+        entry_points=[CommandHandler("start", start)],
+        states={
+            SCEGLI_LINGUA:  [CallbackQueryHandler(scegli_lingua_condizioni, pattern="^lang_")],
+            GDPR:           [CallbackQueryHandler(gestisci_gdpr,            pattern="^gdpr_")],
+            CONDIZIONI:     [CallbackQueryHandler(gestisci_condizioni,      pattern="^cond_")],
+            NOME:           [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_nome)],
+            IND_VIA:        [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_via)],
+            IND_CIVICO:     [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_civico)],
+            IND_CAP:        [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_cap)],
+            IND_CITTA:      [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_citta)],
+            IND_PROVINCIA:  [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_provincia)],
+            TELEFONO:       [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_telefono)],
+            FOTO_TARGHETTA: [MessageHandler((filters.PHOTO | filters.TEXT) & ~filters.COMMAND, raccogli_foto_targhetta)],
+            MARCA:          [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_marca)],
+            MODELLO:        [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_modello)],
+            SERIALE:        [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_seriale)],
+            PROBLEMA:       [MessageHandler(filters.TEXT & ~filters.COMMAND, raccogli_problema)],
+            FOTO_MACCHINA:  [MessageHandler((filters.PHOTO | filters.TEXT) & ~filters.COMMAND, raccogli_foto_macchina)],
+            CONFERMA:       [CallbackQueryHandler(conferma, pattern="^conferma_")],
+        },
+        fallbacks=[CommandHandler("annulla", annulla)]
+    )
+    conv_reg = ConversationHandler(
+        entry_points=[CommandHandler("registrami", registrami)],
+        states={REG_TELEFONO: [MessageHandler(filters.TEXT & ~filters.COMMAND, registrami_telefono)]},
+        fallbacks=[CommandHandler("annulla", annulla)]
+    )
+
+    app.add_handler(conv)
+    app.add_handler(conv_reg)
+    app.add_handler(CallbackQueryHandler(gestisci_fascia,            pattern=r"^fascia_"))
+    app.add_handler(CallbackQueryHandler(gestisci_wfascia,           pattern=r"^wfascia_"))
+    app.add_handler(CallbackQueryHandler(gestisci_programma,         pattern=r"^programma_"))
+    app.add_handler(CallbackQueryHandler(gestisci_data,              pattern=r"^pdata_"))
+    app.add_handler(CallbackQueryHandler(gestisci_ora,               pattern=r"^pora_"))
+    app.add_handler(CallbackQueryHandler(gestisci_conferma_proposta, pattern=r"^cprop_"))
+    app.add_handler(CommandHandler("lista",       lista))
+    app.add_handler(CommandHandler("aperte",      aperte))
+    app.add_handler(CommandHandler("assegnate",   assegnate))
+    app.add_handler(CommandHandler("chiamate",    mie_chiamate))
+    app.add_handler(CommandHandler("getid",       getid))
+    app.add_handler(CommandHandler("storico",     storico))
+    app.add_handler(CommandHandler("statistiche", statistiche))
+    app.add_handler(CallbackQueryHandler(gestisci_storico, pattern=r"^storico_"))
+    app.add_handler(CallbackQueryHandler(gestisci_sblocco, pattern=r"^sblocca_"))
+
+    log.info("🤖 Bot avviato!")
+    Thread(target=avvia_http, daemon=True).start()
+    app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
+
+
+if __name__ == "__main__":
+    main()
